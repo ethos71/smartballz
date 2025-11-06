@@ -265,12 +265,12 @@ class DataRefreshManager:
         print("   python src/fb_ai.py --refresh")
         
         print("\n⚡ Quick update (incremental changes only):")
-        print("   python src/scripts/mlb_delta_scrape.py")
-        print("   python src/scripts/weather_delta_scrape.py")
+        print("   python src/scripts/scrape/mlb_delta_scrape.py")
+        print("   python src/scripts/scrape/weather_delta_scrape.py")
         
         print("\n📊 Individual full scripts:")
-        print("   python src/scripts/mlb_scrape.py")
-        print("   python src/scripts/weather_scrape.py")
+        print("   python src/scripts/scrape/mlb_scrape.py")
+        print("   python src/scripts/scrape/weather_scrape.py")
         print("   python src/scripts/xgboost_ml.py")
         
         print("\n💡 Tips:")
@@ -296,12 +296,12 @@ class DataRefreshManager:
         self.clear_data_directory()
         
         # Step 2: Run MLB scraper
-        if not self.run_script("mlb_scrape.py", "STEP 2: Fetching MLB Data"):
+        if not self.run_script("scrape/mlb_scrape.py", "STEP 2: Fetching MLB Data"):
             print("\n❌ MLB data scraping failed")
             return False
         
         # Step 3: Run weather scraper
-        if not self.run_script("weather_scrape.py", "STEP 3: Fetching Weather Data"):
+        if not self.run_script("scrape/weather_scrape.py", "STEP 3: Fetching Weather Data"):
             print("\n❌ Weather data scraping failed")
             return False
         
@@ -316,10 +316,10 @@ class DataRefreshManager:
         print("="*80 + "\n")
         print("Fetching any new games and roster changes since scrape completed...")
         
-        if not self.run_script("mlb_delta_scrape.py", "STEP 5a: MLB Delta Update"):
+        if not self.run_script("scrape/mlb_delta_scrape.py", "STEP 5a: MLB Delta Update"):
             print("⚠️  Delta update had issues (not critical)")
         
-        if not self.run_script("weather_delta_scrape.py", "STEP 5b: Weather Delta Update"):
+        if not self.run_script("scrape/weather_delta_scrape.py", "STEP 5b: Weather Delta Update"):
             print("⚠️  Weather delta update had issues (not critical)")
         
         # Step 6: Fetch Yahoo roster and run weather advantage analysis
@@ -327,16 +327,44 @@ class DataRefreshManager:
         print("STEP 6: Fetching Yahoo Roster & Weather Analysis".center(80))
         print("="*80 + "\n")
         
-        if not self.run_script("yahoo_scrape.py", "STEP 6a: Yahoo Fantasy Roster"):
+        if not self.run_script("scrape/yahoo_scrape.py", "STEP 6a: Yahoo Fantasy Roster"):
             print("⚠️  Yahoo roster fetch had issues (continuing anyway)")
         
         print("\nRunning weather advantage analysis...")
-        if not self.run_script("weather_advantage.py", "STEP 6b: Weather Advantage Analysis"):
+        if not self.run_script("fa/weather_advantage.py", "STEP 6b: Weather Advantage Analysis"):
             print("⚠️  Weather advantage analysis had issues")
         
         print("\nRunning pitcher-hitter matchup analysis...")
-        if not self.run_script("matchup_analysis.py", "STEP 6c: Matchup Analysis"):
+        if not self.run_script("fa/matchup_analysis.py", "STEP 6c: Matchup Analysis"):
             print("⚠️  Matchup analysis had issues")
+        
+        print("\nRunning platoon advantage analysis...")
+        if not self.run_script("fa/platoon_analysis.py", "STEP 6d: Platoon Analysis"):
+            print("⚠️  Platoon analysis had issues")
+        
+        print("\nRunning park factors analysis...")
+        if not self.run_script("fa/park_factors_analysis.py", "STEP 6e: Park Factors Analysis"):
+            print("⚠️  Park factors analysis had issues")
+        
+        print("\nRunning temperature analysis...")
+        if not self.run_script("fa/temperature_fa.py", "STEP 6f: Temperature Analysis"):
+            print("⚠️  Temperature analysis had issues")
+        
+        print("\nRunning pitch mix analysis...")
+        if not self.run_script("fa/pitch_mix_fa.py", "STEP 6g: Pitch Mix Analysis"):
+            print("⚠️  Pitch mix analysis had issues")
+        
+        print("\nRunning lineup position analysis...")
+        if not self.run_script("fa/lineup_position_fa.py", "STEP 6h: Lineup Position Analysis"):
+            print("⚠️  Lineup position analysis had issues")
+        
+        print("\nRunning time of day analysis...")
+        if not self.run_script("fa/time_of_day_fa.py", "STEP 6i: Time of Day Analysis"):
+            print("⚠️  Time of day analysis had issues")
+        
+        print("\nRunning defensive positions analysis...")
+        if not self.run_script("fa/defensive_positions_fa.py", "STEP 6j: Defensive Positions Analysis"):
+            print("⚠️  Defensive positions analysis had issues")
         
         # Success!
         self.print_header("DATA REFRESH COMPLETE!")

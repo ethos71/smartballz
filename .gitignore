@@ -10,3 +10,9 @@ oauth2.json.bak
 __pycache__/
 */__pycache__/
 **/__pycache__/
+
+# Python cache files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
