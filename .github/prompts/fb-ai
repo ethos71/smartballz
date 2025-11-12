@@ -253,6 +253,34 @@ EXAMPLES:
     # Run for specific date (postseason)
     $ fb-ai --date 2025-10-15
 
+FACTOR ANALYSES (20 Total):
+    The pipeline analyzes 20 different factors for each player:
+    
+    Core Factors (High Impact):
+    • Vegas Odds (11%) 🆕🔥         • Historical Matchup (10%)
+    • Home/Away Venue (8%)          • Injury/Recovery (8%)
+    
+    Strategic Factors (Medium Impact):
+    • Platoon Advantage (7%)        • Bullpen Fatigue (7%)
+    • Statcast Metrics (7%)         • Wind Analysis (6%)
+    • Park Factors (6%)             • Recent Form (6%)
+    
+    Fine-Tuning Factors (Low Impact):
+    • Rest Day Impact (4%)          • Umpire Strike Zone (3%)
+    • Temperature (3%)              • Pitch Mix (3%)
+    • Lineup Position (3%)
+    
+    Supporting Factors:
+    • Time of Day (2%)              • Defensive Positions (2%)
+    • Humidity & Elevation (2%)     • Monthly Splits (1%)
+    • Team Momentum (1%)
+    
+    🆕 NEW: Vegas Odds (15-20% improvement) 🔥
+        Over/Under totals predict scoring environment
+        Implied team run totals from moneyline
+        Vegas is highly accurate at predicting outcomes
+        FREE via The Odds API
+
 OUTPUT:
     Primary file: data/sitstart_recommendations_YYYYMMDD_HHMMSS.csv
     

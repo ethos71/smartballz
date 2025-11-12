@@ -2,7 +2,7 @@
 """
 Run All Factor Analyses
 
-Executes all 13 factor analyses and saves results to CSV files.
+Executes all 20 factor analyses and saves results to CSV files.
 This is a wrapper that runs each FA module and saves outputs.
 
 Usage:
@@ -31,12 +31,16 @@ from scripts.fa import (
     lineup_position_fa,
     time_of_day_fa,
     defensive_positions_fa,
-    recent_form_fa
+    recent_form_fa,
+    humidity_elevation_fa,
+    monthly_splits_fa,
+    team_momentum_fa
+)
 )
 
 
 def run_all_factor_analyses(data_dir: Path):
-    """Run all 13 factor analyses and save outputs"""
+    """Run all 17 factor analyses and save outputs"""
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
@@ -230,7 +234,7 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 14. Recent Form / Streaks Analysis
-    print("14/14 Recent Form / Streaks Analysis...")
+    print("14/18 Recent Form / Streaks Analysis...")
     try:
         analyzer = recent_form_fa.RecentFormAnalyzer(data_dir)
         form_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
@@ -241,9 +245,81 @@ def run_all_factor_analyses(data_dir: Path):
     except Exception as e:
         print(f"  ✗ Error: {e}")
     
-    print(f"\n✓ Completed {len(results)}/14 factor analyses")
+    # 15. Bullpen Fatigue Analysis
+    print("15/18 Bullpen Fatigue Detection...")
+    try:
+        analyzer = bullpen_fatigue_fa.BullpenFatigueAnalyzer(data_dir)
+        bullpen_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
+        output_file = data_dir / f"bullpen_fatigue_analysis_{timestamp}.csv"
+        bullpen_df.to_csv(output_file, index=False)
+        results['bullpen'] = output_file
+        print(f"  ✓ Saved to {output_file.name}")
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
     
-    return len(results) >= 11  # Success if at least 11 completed
+    # 16. Humidity & Elevation Analysis
+    print("16/18 Humidity & Elevation Analysis...")
+    try:
+        analyzer = humidity_elevation_fa.HumidityElevationAnalyzer(data_dir)
+        humidity_df = analyzer.analyze_roster(roster_df, schedule_2025, weather)
+        output_file = data_dir / f"humidity_elevation_analysis_{timestamp}.csv"
+        humidity_df.to_csv(output_file, index=False)
+        results['humidity'] = output_file
+        print(f"  ✓ Saved to {output_file.name}")
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    # 17. Monthly Splits Analysis
+    print("17/18 Monthly Splits Analysis...")
+    try:
+        analyzer = monthly_splits_fa.MonthlySplitsAnalyzer(data_dir)
+        monthly_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
+        output_file = data_dir / f"monthly_splits_analysis_{timestamp}.csv"
+        monthly_df.to_csv(output_file, index=False)
+        results['monthly'] = output_file
+        print(f"  ✓ Saved to {output_file.name}")
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    # 18. Team Momentum Analysis
+    print("18/19 Team Momentum Analysis...")
+    try:
+        analyzer = team_momentum_fa.TeamOffensiveMomentumAnalyzer(data_dir)
+        momentum_df = analyzer.analyze_roster(roster_df, schedule_2025, teams)
+        output_file = data_dir / f"team_momentum_analysis_{timestamp}.csv"
+        momentum_df.to_csv(output_file, index=False)
+        results['momentum'] = output_file
+        print(f"  ✓ Saved to {output_file.name}")
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    # 19. Statcast Metrics Analysis
+    print("19/20 Statcast Metrics Analysis...")
+    try:
+        analyzer = statcast_metrics_fa.StatcastMetricsAnalyzer(data_dir)
+        statcast_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
+        output_file = data_dir / f"statcast_metrics_analysis_{timestamp}.csv"
+        statcast_df.to_csv(output_file, index=False)
+        results['statcast'] = output_file
+        print(f"  ✓ Saved to {output_file.name}")
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    # 20. Vegas Odds Analysis
+    print("20/20 Vegas Odds Analysis...")
+    try:
+        analyzer = vegas_odds_fa.VegasOddsAnalyzer(data_dir)
+        vegas_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
+        output_file = data_dir / f"vegas_odds_analysis_{timestamp}.csv"
+        vegas_df.to_csv(output_file, index=False)
+        results['vegas'] = output_file
+        print(f"  ✓ Saved to {output_file.name}")
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+    
+    print(f"\n✓ Completed {len(results)}/20 factor analyses")
+    
+    return len(results) >= 17  # Success if at least 17 completed
 
 
 def main():
