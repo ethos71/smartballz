@@ -7,12 +7,14 @@ This script provides a repeatable process to be run 30 minutes before game time:
 2. Run all 20 Factor Analyses
 3. Tune weights for each player on your current roster
 4. Provide sit/start recommendations
+5. Suggest waiver wire pickups for weak performers
 
 Usage:
     python src/scripts/daily_sitstart.py                    # Run for today's games
     python src/scripts/daily_sitstart.py --date 2025-09-29  # Run for specific date
     python src/scripts/daily_sitstart.py --skip-tune        # Skip weight tuning (faster)
     python src/scripts/daily_sitstart.py --tune-only        # Only tune weights, no recommendations
+    python src/scripts/daily_sitstart.py --skip-waiver      # Skip waiver wire suggestions
 """
 
 import os
@@ -29,11 +31,14 @@ import json
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Import waiver wire analyzer
+from scripts.waiver_wire import WaiverWireAnalyzer
+
 
 class DailySitStartManager:
     """Manages daily sit/start decision process"""
     
-    def __init__(self, project_root: Path, target_date: Optional[str] = None):
+    def __init__(self, project_root: Path, target_date: Optional[str] = None, week_mode: bool = False):
         self.project_root = project_root
         self.data_dir = project_root / "data"
         self.scripts_dir = project_root / "src" / "scripts"
@@ -46,7 +51,14 @@ class DailySitStartManager:
         else:
             self.target_date = datetime.now()
         
-        print(f"\n🎯 Target Date: {self.target_date.strftime('%Y-%m-%d')}")
+        self.week_mode = week_mode
+        if week_mode:
+            # Analyze 7 days starting from target_date
+            self.start_date = self.target_date
+            self.end_date = self.target_date + timedelta(days=6)
+            print(f"\n🎯 Target Week: {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}")
+        else:
+            print(f"\n🎯 Target Date: {self.target_date.strftime('%Y-%m-%d')}")
     
     def print_header(self, text: str):
         """Print formatted section header"""
@@ -181,14 +193,48 @@ class DailySitStartManager:
         """Step 4: Generate sit/start recommendations"""
         self.print_header("STEP 4: Generate Sit/Start Recommendations")
         
-        # Load latest roster
+        # Load latest roster - try both file patterns
         roster_file = self._get_latest_file("yahoo_fantasy_rosters_*.csv")
         if not roster_file:
+            roster_file = self._get_latest_file("yahoo_roster_*.csv")
+        
+        if not roster_file:
             print("❌ No roster file found!")
+            print("   Make sure Yahoo roster fetch completed successfully")
             return {}
         
         print(f"Loading roster: {roster_file.name}")
         roster_df = pd.read_csv(roster_file)
+        
+        # Team abbreviation to full name mapping
+        TEAM_MAP = {
+            'AZ': 'Arizona Diamondbacks', 'ATL': 'Atlanta Braves',
+            'ATH': 'Oakland Athletics', 'BAL': 'Baltimore Orioles',
+            'BOS': 'Boston Red Sox', 'CHC': 'Chicago Cubs',
+            'CHW': 'Chicago White Sox', 'CIN': 'Cincinnati Reds',
+            'CLE': 'Cleveland Guardians', 'COL': 'Colorado Rockies',
+            'CWS': 'Chicago White Sox', 'DET': 'Detroit Tigers',
+            'HOU': 'Houston Astros', 'KC': 'Kansas City Royals',
+            'LAA': 'Los Angeles Angels', 'LAD': 'Los Angeles Dodgers',
+            'MIA': 'Miami Marlins', 'MIL': 'Milwaukee Brewers',
+            'MIN': 'Minnesota Twins', 'NYM': 'New York Mets',
+            'NYY': 'New York Yankees', 'OAK': 'Oakland Athletics',
+            'PHI': 'Philadelphia Phillies', 'PIT': 'Pittsburgh Pirates',
+            'SD': 'San Diego Padres', 'SEA': 'Seattle Mariners',
+            'SF': 'San Francisco Giants', 'STL': 'St. Louis Cardinals',
+            'TB': 'Tampa Bay Rays', 'TEX': 'Texas Rangers',
+            'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals',
+        }
+        
+        # Normalize column names (handle different roster formats)
+        if 'mlb_team' in roster_df.columns and 'team' not in roster_df.columns:
+            # Map abbreviations to full names
+            roster_df['team'] = roster_df['mlb_team'].map(TEAM_MAP)
+            # Fill unmapped with original abbrev
+            roster_df['team'].fillna(roster_df['mlb_team'], inplace=True)
+        if 'name' in roster_df.columns and 'player_name' not in roster_df.columns:
+            roster_df['player_name'] = roster_df['name']
+        
         print(f"Found {len(roster_df)} players on roster\n")
         
         # Load all factor analysis results
@@ -331,18 +377,12 @@ class DailySitStartManager:
     def _calculate_final_score(self, scores: Dict[str, float], weights: Dict[str, float]) -> float:
         """Calculate weighted final score"""
         total_score = 0.0
-        total_weight = 0.0
         
         for factor, score in scores.items():
             weight = weights.get(factor, 0.0)
             total_score += score * weight
-            total_weight += weight
         
-        # Normalize if weights don't sum to 1.0
-        if total_weight > 0:
-            return total_score / total_weight if total_weight != 1.0 else total_score
-        
-        return 0.0
+        return total_score
     
     def _get_recommendation(self, score: float) -> str:
         """Convert score to recommendation"""
@@ -436,7 +476,106 @@ class DailySitStartManager:
         
         print(f"\n💾 Recommendations saved to: {output_file.name}")
     
-    def run_full_process(self, skip_tune: bool = False, tune_only: bool = False):
+    def step5_analyze_waiver_wire(self, recommendations: Dict) -> None:
+        """Step 5: Analyze waiver wire opportunities"""
+        self.print_header("STEP 5: Waiver Wire Analysis")
+        
+        print("Analyzing waiver wire opportunities for weak performers...")
+        
+        try:
+            # Load schedule
+            schedule_file = self._get_latest_file('schedule_2025.csv')
+            if not schedule_file:
+                print("  ⚠️  No schedule file found, skipping waiver analysis")
+                return
+            
+            schedule_df = pd.read_csv(schedule_file)
+            schedule_df['game_date'] = pd.to_datetime(schedule_df['game_date'])
+            
+            # Load roster
+            roster_file = self._get_latest_file('yahoo_roster_*.csv')
+            if not roster_file:
+                print("  ⚠️  No roster file found, skipping waiver analysis")
+                return
+            
+            roster_df = pd.read_csv(roster_file)
+            
+            # For now, use a sample of available players
+            # TODO: Integrate with Yahoo API to get actual free agents
+            # For demonstration, we'll analyze all players and filter
+            
+            # Load all FA outputs to create sample FA pool
+            fa_scores_list = []
+            
+            # Try to load some FA outputs (this is a placeholder)
+            # In production, this would come from Yahoo's available players list
+            print("  💡 Note: Free agent pool integration pending")
+            print("  💡 Analyzing based on current data...")
+            
+            # Initialize waiver analyzer
+            waiver_analyzer = WaiverWireAnalyzer(self.data_dir)
+            
+            # Generate waiver report
+            # For now, just analyze drop candidates from roster
+            print("\n" + "=" * 80)
+            print("ROSTER ANALYSIS - Drop Candidates")
+            print("=" * 80)
+            
+            drop_candidates = waiver_analyzer.suggest_drop_candidates(
+                roster_df, recommendations
+            )
+            
+            if len(drop_candidates) > 0:
+                weak_performers = drop_candidates[
+                    drop_candidates['drop_priority'].str.contains('DROP|CONSIDER')
+                ]
+                
+                if len(weak_performers) > 0:
+                    print("\n⚠️  WEAKEST PERFORMERS THIS WEEK:")
+                    print("-" * 80)
+                    print(f"{'Player':<25} {'Avg Score':>10} {'Priority':<30}")
+                    print("-" * 80)
+                    
+                    for _, row in weak_performers.head(5).iterrows():
+                        print(f"{row['player_name']:<25} {row['avg_score']:>10.2f} {row['drop_priority']:<30}")
+                    
+                    print("\n💡 Consider these players for streaming/replacement")
+                    print("💡 Look for free agents with upcoming Coors games, favorable matchups")
+                else:
+                    print("\n✅ No clear drop candidates - all players have acceptable matchups")
+            
+            print("\n" + "=" * 80)
+            print("WAIVER WIRE STRATEGY TIPS:")
+            print("=" * 80)
+            print("""
+🏔️  COORS FIELD PLAYS:
+   • Look for players with upcoming series at Colorado
+   • Even weak hitters perform well at Coors
+   • Stream for those series, then drop
+
+📅 HIGH VOLUME WEEKS:
+   • Target players with 7+ games this week
+   • More at-bats = more counting stats
+   
+⚖️  PLATOON ADVANTAGES:
+   • Check upcoming pitcher handedness
+   • Stream platoon players for favorable matchups
+
+🏟️  HITTER-FRIENDLY PARKS:
+   • CIN (Great American Ball Park)
+   • TEX (Globe Life Field)  
+   • CHC (Wrigley Field on windy days)
+   • BAL (Camden Yards)
+   • ARI (Chase Field)
+            """)
+            
+        except Exception as e:
+            print(f"  ⚠️  Waiver wire analysis error: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def run_full_process(self, skip_tune: bool = False, tune_only: bool = False, 
+                        skip_waiver: bool = False):
         """Run the complete daily sit/start process"""
         self.print_header(f"DAILY SIT/START PROCESS - {self.target_date.strftime('%Y-%m-%d')}")
         
@@ -468,6 +607,12 @@ class DailySitStartManager:
         recommendations = self.step4_generate_recommendations()
         self.display_recommendations(recommendations)
         
+        # Step 5: Waiver wire analysis (unless skipped)
+        if not skip_waiver:
+            self.step5_analyze_waiver_wire(recommendations)
+        else:
+            print("\n⏭️  Skipping waiver wire analysis (--skip-waiver flag)")
+        
         # Summary
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
@@ -477,6 +622,8 @@ class DailySitStartManager:
         print(f"Finished: {end_time.strftime('%H:%M:%S')}")
         print(f"Duration: {duration:.1f} seconds ({duration/60:.1f} minutes)")
         print(f"\n✅ Sit/Start recommendations ready for {self.target_date.strftime('%Y-%m-%d')}")
+        if not skip_waiver:
+            print("✅ Waiver wire analysis complete")
         print("\n💡 Run this script 30 minutes before game time for best results")
         print("="*80 + "\n")
 
@@ -520,6 +667,12 @@ Run 30 minutes before game time for optimal decisions.
         help='Only run weight tuning, skip recommendations'
     )
     
+    parser.add_argument(
+        '--skip-waiver',
+        action='store_true',
+        help='Skip waiver wire pickup analysis'
+    )
+    
     args = parser.parse_args()
     
     # Get project root
@@ -529,7 +682,11 @@ Run 30 minutes before game time for optimal decisions.
     manager = DailySitStartManager(project_root, args.date)
     
     try:
-        manager.run_full_process(skip_tune=args.skip_tune, tune_only=args.tune_only)
+        manager.run_full_process(
+            skip_tune=args.skip_tune, 
+            tune_only=args.tune_only,
+            skip_waiver=args.skip_waiver
+        )
         sys.exit(0)
         
     except KeyboardInterrupt:

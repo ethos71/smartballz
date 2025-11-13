@@ -32,10 +32,12 @@ from scripts.fa import (
     time_of_day_fa,
     defensive_positions_fa,
     recent_form_fa,
+    bullpen_fatigue_fa,
     humidity_elevation_fa,
     monthly_splits_fa,
-    team_momentum_fa
-)
+    team_momentum_fa,
+    statcast_metrics_fa,
+    vegas_odds_fa
 )
 
 
@@ -55,6 +57,34 @@ def run_all_factor_analyses(data_dir: Path):
         return False
     
     roster_df = pd.read_csv(roster_files[0])
+    
+    # Team abbreviation to full name mapping
+    TEAM_MAP = {
+        'AZ': 'Arizona Diamondbacks', 'ATL': 'Atlanta Braves',
+        'ATH': 'Oakland Athletics', 'BAL': 'Baltimore Orioles',
+        'BOS': 'Boston Red Sox', 'CHC': 'Chicago Cubs',
+        'CHW': 'Chicago White Sox', 'CIN': 'Cincinnati Reds',
+        'CLE': 'Cleveland Guardians', 'COL': 'Colorado Rockies',
+        'CWS': 'Chicago White Sox', 'DET': 'Detroit Tigers',
+        'HOU': 'Houston Astros', 'KC': 'Kansas City Royals',
+        'LAA': 'Los Angeles Angels', 'LAD': 'Los Angeles Dodgers',
+        'MIA': 'Miami Marlins', 'MIL': 'Milwaukee Brewers',
+        'MIN': 'Minnesota Twins', 'NYM': 'New York Mets',
+        'NYY': 'New York Yankees', 'OAK': 'Oakland Athletics',
+        'PHI': 'Philadelphia Phillies', 'PIT': 'Pittsburgh Pirates',
+        'SD': 'San Diego Padres', 'SEA': 'Seattle Mariners',
+        'SF': 'San Francisco Giants', 'STL': 'St. Louis Cardinals',
+        'TB': 'Tampa Bay Rays', 'TEX': 'Texas Rangers',
+        'TOR': 'Toronto Blue Jays', 'WSH': 'Washington Nationals',
+    }
+    
+    # Normalize roster columns
+    if 'mlb_team' in roster_df.columns and 'team' not in roster_df.columns:
+        roster_df['team'] = roster_df['mlb_team'].map(TEAM_MAP)
+        roster_df['team'].fillna(roster_df['mlb_team'], inplace=True)
+    if 'name' in roster_df.columns and 'player_name' not in roster_df.columns:
+        roster_df['player_name'] = roster_df['name']
+    
     print(f"✓ Loaded roster: {roster_files[0].name} ({len(roster_df)} players)")
     
     # Load other data files
@@ -78,9 +108,9 @@ def run_all_factor_analyses(data_dir: Path):
     results = {}
     
     # 1. Wind Analysis
-    print("1/13 Wind Analysis...")
+    print("1/20 Wind Analysis...")
     try:
-        analyzer = wind_analysis.WindAnalyzer()
+        analyzer = wind_analysis.WindAnalyzer(data_dir)
         wind_df = analyzer.analyze_roster(roster_df, schedule_2025, weather)
         output_file = data_dir / f"wind_analysis_{timestamp}.csv"
         wind_df.to_csv(output_file, index=False)
@@ -90,9 +120,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 2. Matchup Analysis  
-    print("2/13 Historical Matchup Analysis...")
+    print("2/20 Historical Matchup Analysis...")
     try:
-        analyzer = matchup_fa.MatchupAnalyzer()
+        analyzer = matchup_fa.MatchupFactorAnalyzer(data_dir)
         matchup_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
         output_file = data_dir / f"matchup_analysis_{timestamp}.csv"
         matchup_df.to_csv(output_file, index=False)
@@ -102,9 +132,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 3. Home/Away Analysis
-    print("3/13 Home/Away Venue Analysis...")
+    print("3/20 Home/Away Venue Analysis...")
     try:
-        analyzer = home_away_fa.HomeAwayAnalyzer()
+        analyzer = home_away_fa.HomeAwayFactorAnalyzer(data_dir)
         venue_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
         output_file = data_dir / f"home_away_analysis_{timestamp}.csv"
         venue_df.to_csv(output_file, index=False)
@@ -114,9 +144,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 4. Rest Day Analysis
-    print("4/13 Rest Day Impact Analysis...")
+    print("4/20 Rest Day Impact Analysis...")
     try:
-        analyzer = rest_day_fa.RestDayAnalyzer()
+        analyzer = rest_day_fa.RestDayFactorAnalyzer(data_dir)
         rest_df = analyzer.analyze_roster(roster_df, schedule_2025)
         output_file = data_dir / f"rest_day_analysis_{timestamp}.csv"
         rest_df.to_csv(output_file, index=False)
@@ -126,9 +156,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 5. Injury/Recovery Analysis
-    print("5/13 Injury/Recovery Analysis...")
+    print("5/20 Injury/Recovery Analysis...")
     try:
-        analyzer = injury_fa.InjuryAnalyzer()
+        analyzer = injury_fa.InjuryFactorAnalyzer(data_dir)
         injury_df = analyzer.analyze_roster(roster_df, players_complete)
         output_file = data_dir / f"injury_analysis_{timestamp}.csv"
         injury_df.to_csv(output_file, index=False)
@@ -138,9 +168,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 6. Umpire Analysis
-    print("6/13 Umpire Strike Zone Analysis...")
+    print("6/20 Umpire Strike Zone Analysis...")
     try:
-        analyzer = umpire_fa.UmpireAnalyzer()
+        analyzer = umpire_fa.UmpireFactorAnalyzer(data_dir)
         umpire_df = analyzer.analyze_roster(roster_df, schedule_2025)
         output_file = data_dir / f"umpire_analysis_{timestamp}.csv"
         umpire_df.to_csv(output_file, index=False)
@@ -150,9 +180,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 7. Platoon Analysis
-    print("7/13 Platoon Advantage Analysis...")
+    print("7/20 Platoon Advantage Analysis...")
     try:
-        analyzer = platoon_fa.PlatoonAnalyzer()
+        analyzer = platoon_fa.PlatoonFactorAnalyzer(data_dir)
         platoon_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
         output_file = data_dir / f"platoon_analysis_{timestamp}.csv"
         platoon_df.to_csv(output_file, index=False)
@@ -162,9 +192,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 8. Temperature Analysis
-    print("8/13 Temperature Analysis...")
+    print("8/20 Temperature Analysis...")
     try:
-        analyzer = temperature_fa.TemperatureAnalyzer()
+        analyzer = temperature_fa.TemperatureAnalyzer(data_dir)
         temp_df = analyzer.analyze_roster(roster_df, schedule_2025, weather)
         output_file = data_dir / f"temperature_analysis_{timestamp}.csv"
         temp_df.to_csv(output_file, index=False)
@@ -174,9 +204,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 9. Pitch Mix Analysis
-    print("9/13 Pitch Mix Analysis...")
+    print("9/20 Pitch Mix Analysis...")
     try:
-        analyzer = pitch_mix_fa.PitchMixAnalyzer()
+        analyzer = pitch_mix_fa.PitchMixAnalyzer(data_dir)
         pitch_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
         output_file = data_dir / f"pitch_mix_analysis_{timestamp}.csv"
         pitch_df.to_csv(output_file, index=False)
@@ -186,9 +216,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 10. Park Factors Analysis
-    print("10/13 Park Factors Analysis...")
+    print("10/20 Park Factors Analysis...")
     try:
-        analyzer = park_factors_fa.ParkFactorsAnalyzer()
+        analyzer = park_factors_fa.ParkFactorsAnalyzer(data_dir)
         park_df = analyzer.analyze_roster(roster_df, schedule_2025, teams)
         output_file = data_dir / f"park_factors_analysis_{timestamp}.csv"
         park_df.to_csv(output_file, index=False)
@@ -198,9 +228,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 11. Lineup Position Analysis
-    print("11/13 Lineup Position Analysis...")
+    print("11/20 Lineup Position Analysis...")
     try:
-        analyzer = lineup_position_fa.LineupPositionAnalyzer()
+        analyzer = lineup_position_fa.LineupPositionAnalyzer(data_dir)
         lineup_df = analyzer.analyze_roster(roster_df, schedule_2025)
         output_file = data_dir / f"lineup_position_analysis_{timestamp}.csv"
         lineup_df.to_csv(output_file, index=False)
@@ -210,9 +240,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 12. Time of Day Analysis
-    print("12/13 Time of Day Analysis...")
+    print("12/20 Time of Day Analysis...")
     try:
-        analyzer = time_of_day_fa.TimeOfDayAnalyzer()
+        analyzer = time_of_day_fa.TimeOfDayAnalyzer(data_dir)
         time_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
         output_file = data_dir / f"time_of_day_analysis_{timestamp}.csv"
         time_df.to_csv(output_file, index=False)
@@ -222,9 +252,9 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 13. Defensive Positions Analysis
-    print("13/14 Defensive Positions Analysis...")
+    print("13/20 Defensive Positions Analysis...")
     try:
-        analyzer = defensive_positions_fa.DefensivePositionsAnalyzer()
+        analyzer = defensive_positions_fa.DefensivePositionsFactorAnalyzer(data_dir)
         defense_df = analyzer.analyze_roster(roster_df, schedule_2025, teams)
         output_file = data_dir / f"defensive_positions_analysis_{timestamp}.csv"
         defense_df.to_csv(output_file, index=False)
@@ -234,7 +264,7 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 14. Recent Form / Streaks Analysis
-    print("14/18 Recent Form / Streaks Analysis...")
+    print("14/20 Recent Form / Streaks Analysis...")
     try:
         analyzer = recent_form_fa.RecentFormAnalyzer(data_dir)
         form_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
@@ -246,7 +276,7 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 15. Bullpen Fatigue Analysis
-    print("15/18 Bullpen Fatigue Detection...")
+    print("15/20 Bullpen Fatigue Detection...")
     try:
         analyzer = bullpen_fatigue_fa.BullpenFatigueAnalyzer(data_dir)
         bullpen_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
@@ -258,7 +288,7 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 16. Humidity & Elevation Analysis
-    print("16/18 Humidity & Elevation Analysis...")
+    print("16/20 Humidity & Elevation Analysis...")
     try:
         analyzer = humidity_elevation_fa.HumidityElevationAnalyzer(data_dir)
         humidity_df = analyzer.analyze_roster(roster_df, schedule_2025, weather)
@@ -270,7 +300,7 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 17. Monthly Splits Analysis
-    print("17/18 Monthly Splits Analysis...")
+    print("17/20 Monthly Splits Analysis...")
     try:
         analyzer = monthly_splits_fa.MonthlySplitsAnalyzer(data_dir)
         monthly_df = analyzer.analyze_roster(roster_df, schedule_2025, players_complete)
@@ -282,7 +312,7 @@ def run_all_factor_analyses(data_dir: Path):
         print(f"  ✗ Error: {e}")
     
     # 18. Team Momentum Analysis
-    print("18/19 Team Momentum Analysis...")
+    print("18/20 Team Momentum Analysis...")
     try:
         analyzer = team_momentum_fa.TeamOffensiveMomentumAnalyzer(data_dir)
         momentum_df = analyzer.analyze_roster(roster_df, schedule_2025, teams)
