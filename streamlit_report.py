@@ -687,123 +687,369 @@ if roster is not None and period_stats is not None:
     
     with tab1:
         if not stats_7d.empty:
-            section_header("Last 7 Days (Yahoo Roster Order)", "")
+            # Split into Hitters and Pitchers
+            hitters_7d = stats_7d[~stats_7d['position'].isin(['SP', 'RP', 'SP,RP', 'P'])].copy()
+            pitchers_7d = stats_7d[stats_7d['position'].isin(['SP', 'RP', 'SP,RP', 'P'])].copy()
             
-            # Display all players in roster order with position and status
-            # Add Yahoo player links
-            stats_7d_display = stats_7d.copy()
-            # Load player_key mapping from roster
-            try:
-                roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
-                if roster_files:
-                    yahoo_roster = pd.read_csv(roster_files[0])
-                    if 'player_key' in yahoo_roster.columns:
-                        player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
-                        stats_7d_display['player_key'] = stats_7d_display['player_name'].map(player_key_map).fillna('')
-                        stats_7d_display['yahoo_link'] = stats_7d_display['player_key'].apply(
-                            lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
-                            if pk and '.' in str(pk) else ''
-                        )
-            except:
-                stats_7d_display['yahoo_link'] = ''
+            # Hitters Section
+            if not hitters_7d.empty:
+                st.markdown("### 🔨 Hitters - Last 7 Days")
+                
+                # Add Yahoo player links
+                try:
+                    roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                    if roster_files:
+                        yahoo_roster = pd.read_csv(roster_files[0])
+                        if 'player_key' in yahoo_roster.columns:
+                            player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                            hitters_7d['player_key'] = hitters_7d['player_name'].map(player_key_map).fillna('')
+                            hitters_7d['yahoo_link'] = hitters_7d['player_key'].apply(
+                                lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                if pk and '.' in str(pk) else ''
+                            )
+                except:
+                    hitters_7d['yahoo_link'] = ''
+                
+                # Add roster order column
+                hitters_7d['#'] = range(1, len(hitters_7d) + 1)
+                
+                display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'position', 'team', 'games', 'ab', 'h', 'r', 'rbi', 'hr', 'sb', 'avg', 'ops']
+                hitters_display = hitters_7d[[col for col in display_cols if col in hitters_7d.columns]].copy()
+                if 'avg' in hitters_display.columns:
+                    hitters_display['avg'] = hitters_display['avg'].round(3)
+                if 'ops' in hitters_display.columns:
+                    hitters_display['ops'] = hitters_display['ops'].round(3)
+                
+                st.dataframe(
+                    hitters_display,
+                    column_config={
+                        "#": st.column_config.NumberColumn("#", width="small"),
+                        "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        "avg": st.column_config.NumberColumn("AVG", format="%.3f"),
+                        "ops": st.column_config.NumberColumn("OPS", format="%.3f"),
+                    },
+                    use_container_width=True,
+                    height=400,
+                    hide_index=True
+                )
             
-            display_cols = ['player_name', 'yahoo_link', 'status', 'position', 'team', 'games', 'ab', 'h', 'r', 'rbi', 'hr', 'sb', 'avg', 'ops']
-            all_display = stats_7d_display[[col for col in display_cols if col in stats_7d_display.columns]].copy()
-            if 'avg' in all_display.columns:
-                all_display['avg'] = all_display['avg'].round(3)
-            if 'ops' in all_display.columns:
-                all_display['ops'] = all_display['ops'].round(3)
-            
-            st.dataframe(
-                all_display,
-                column_config={
-                    "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗"),
-                    "avg": st.column_config.NumberColumn("avg", format="%.3f"),
-                    "ops": st.column_config.NumberColumn("ops", format="%.3f"),
-                },
-                use_container_width=True,
-                height=600
-            )
+            # Pitchers Section (SP and RP)
+            if not pitchers_7d.empty:
+                st.markdown("### ⚾ Pitchers - Last 7 Days")
+                
+                # Separate SP and RP
+                sp_7d = pitchers_7d[pitchers_7d['position'].str.contains('SP')].copy()
+                rp_7d = pitchers_7d[pitchers_7d['position'].str.contains('RP') & ~pitchers_7d['position'].str.contains('SP')].copy()
+                
+                # Starting Pitchers
+                if not sp_7d.empty:
+                    st.markdown("**Starting Pitchers (SP)**")
+                    
+                    # Add Yahoo player links
+                    try:
+                        roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                        if roster_files:
+                            yahoo_roster = pd.read_csv(roster_files[0])
+                            if 'player_key' in yahoo_roster.columns:
+                                player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                                sp_7d['player_key'] = sp_7d['player_name'].map(player_key_map).fillna('')
+                                sp_7d['yahoo_link'] = sp_7d['player_key'].apply(
+                                    lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                    if pk and '.' in str(pk) else ''
+                                )
+                    except:
+                        sp_7d['yahoo_link'] = ''
+                    
+                    sp_7d['#'] = range(1, len(sp_7d) + 1)
+                    
+                    display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'team', 'games']
+                    sp_display = sp_7d[[col for col in display_cols if col in sp_7d.columns]].copy()
+                    
+                    st.dataframe(
+                        sp_display,
+                        column_config={
+                            "#": st.column_config.NumberColumn("#", width="small"),
+                            "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        },
+                        use_container_width=True,
+                        height=250,
+                        hide_index=True
+                    )
+                
+                # Relief Pitchers
+                if not rp_7d.empty:
+                    st.markdown("**Relief Pitchers (RP)**")
+                    
+                    # Add Yahoo player links
+                    try:
+                        roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                        if roster_files:
+                            yahoo_roster = pd.read_csv(roster_files[0])
+                            if 'player_key' in yahoo_roster.columns:
+                                player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                                rp_7d['player_key'] = rp_7d['player_name'].map(player_key_map).fillna('')
+                                rp_7d['yahoo_link'] = rp_7d['player_key'].apply(
+                                    lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                    if pk and '.' in str(pk) else ''
+                                )
+                    except:
+                        rp_7d['yahoo_link'] = ''
+                    
+                    rp_7d['#'] = range(1, len(rp_7d) + 1)
+                    
+                    display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'team', 'games']
+                    rp_display = rp_7d[[col for col in display_cols if col in rp_7d.columns]].copy()
+                    
+                    st.dataframe(
+                        rp_display,
+                        column_config={
+                            "#": st.column_config.NumberColumn("#", width="small"),
+                            "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        },
+                        use_container_width=True,
+                        height=250,
+                        hide_index=True
+                    )
         else:
             st.info("No stats available for last 7 days")
     
     with tab2:
         if not stats_14d.empty:
-            section_header("Last 14 Days (Yahoo Roster Order)", "")
+            # Split into Hitters and Pitchers
+            hitters_14d = stats_14d[~stats_14d['position'].isin(['SP', 'RP', 'SP,RP', 'P'])].copy()
+            pitchers_14d = stats_14d[stats_14d['position'].isin(['SP', 'RP', 'SP,RP', 'P'])].copy()
             
-            # Add Yahoo player links
-            stats_14d_display = stats_14d.copy()
-            try:
-                roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
-                if roster_files:
-                    yahoo_roster = pd.read_csv(roster_files[0])
-                    if 'player_key' in yahoo_roster.columns:
-                        player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
-                        stats_14d_display['player_key'] = stats_14d_display['player_name'].map(player_key_map).fillna('')
-                        stats_14d_display['yahoo_link'] = stats_14d_display['player_key'].apply(
-                            lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
-                            if pk and '.' in str(pk) else ''
-                        )
-            except:
-                stats_14d_display['yahoo_link'] = ''
+            # Hitters Section
+            if not hitters_14d.empty:
+                st.markdown("### 🔨 Hitters - Last 14 Days")
+                
+                # Add Yahoo player links
+                try:
+                    roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                    if roster_files:
+                        yahoo_roster = pd.read_csv(roster_files[0])
+                        if 'player_key' in yahoo_roster.columns:
+                            player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                            hitters_14d['player_key'] = hitters_14d['player_name'].map(player_key_map).fillna('')
+                            hitters_14d['yahoo_link'] = hitters_14d['player_key'].apply(
+                                lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                if pk and '.' in str(pk) else ''
+                            )
+                except:
+                    hitters_14d['yahoo_link'] = ''
+                
+                hitters_14d['#'] = range(1, len(hitters_14d) + 1)
+                
+                display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'position', 'team', 'games', 'ab', 'h', 'r', 'rbi', 'hr', 'sb', 'avg', 'ops']
+                hitters_display = hitters_14d[[col for col in display_cols if col in hitters_14d.columns]].copy()
+                if 'avg' in hitters_display.columns:
+                    hitters_display['avg'] = hitters_display['avg'].round(3)
+                if 'ops' in hitters_display.columns:
+                    hitters_display['ops'] = hitters_display['ops'].round(3)
+                
+                st.dataframe(
+                    hitters_display,
+                    column_config={
+                        "#": st.column_config.NumberColumn("#", width="small"),
+                        "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        "avg": st.column_config.NumberColumn("AVG", format="%.3f"),
+                        "ops": st.column_config.NumberColumn("OPS", format="%.3f"),
+                    },
+                    use_container_width=True,
+                    height=400,
+                    hide_index=True
+                )
             
-            display_cols = ['player_name', 'yahoo_link', 'status', 'position', 'team', 'games', 'ab', 'h', 'r', 'rbi', 'hr', 'sb', 'avg', 'ops']
-            all_display = stats_14d_display[[col for col in display_cols if col in stats_14d_display.columns]].copy()
-            if 'avg' in all_display.columns:
-                all_display['avg'] = all_display['avg'].round(3)
-            if 'ops' in all_display.columns:
-                all_display['ops'] = all_display['ops'].round(3)
-            
-            st.dataframe(
-                all_display,
-                column_config={
-                    "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗"),
-                    "avg": st.column_config.NumberColumn("avg", format="%.3f"),
-                    "ops": st.column_config.NumberColumn("ops", format="%.3f"),
-                },
-                use_container_width=True,
-                height=600
-            )
+            # Pitchers Section
+            if not pitchers_14d.empty:
+                st.markdown("### ⚾ Pitchers - Last 14 Days")
+                
+                sp_14d = pitchers_14d[pitchers_14d['position'].str.contains('SP')].copy()
+                rp_14d = pitchers_14d[pitchers_14d['position'].str.contains('RP') & ~pitchers_14d['position'].str.contains('SP')].copy()
+                
+                if not sp_14d.empty:
+                    st.markdown("**Starting Pitchers (SP)**")
+                    try:
+                        roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                        if roster_files:
+                            yahoo_roster = pd.read_csv(roster_files[0])
+                            if 'player_key' in yahoo_roster.columns:
+                                player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                                sp_14d['player_key'] = sp_14d['player_name'].map(player_key_map).fillna('')
+                                sp_14d['yahoo_link'] = sp_14d['player_key'].apply(
+                                    lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                    if pk and '.' in str(pk) else ''
+                                )
+                    except:
+                        sp_14d['yahoo_link'] = ''
+                    
+                    sp_14d['#'] = range(1, len(sp_14d) + 1)
+                    
+                    display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'team', 'games']
+                    sp_display = sp_14d[[col for col in display_cols if col in sp_14d.columns]].copy()
+                    
+                    st.dataframe(
+                        sp_display,
+                        column_config={
+                            "#": st.column_config.NumberColumn("#", width="small"),
+                            "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        },
+                        use_container_width=True,
+                        height=250,
+                        hide_index=True
+                    )
+                
+                if not rp_14d.empty:
+                    st.markdown("**Relief Pitchers (RP)**")
+                    try:
+                        roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                        if roster_files:
+                            yahoo_roster = pd.read_csv(roster_files[0])
+                            if 'player_key' in yahoo_roster.columns:
+                                player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                                rp_14d['player_key'] = rp_14d['player_name'].map(player_key_map).fillna('')
+                                rp_14d['yahoo_link'] = rp_14d['player_key'].apply(
+                                    lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                    if pk and '.' in str(pk) else ''
+                                )
+                    except:
+                        rp_14d['yahoo_link'] = ''
+                    
+                    rp_14d['#'] = range(1, len(rp_14d) + 1)
+                    
+                    display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'team', 'games']
+                    rp_display = rp_14d[[col for col in display_cols if col in rp_14d.columns]].copy()
+                    
+                    st.dataframe(
+                        rp_display,
+                        column_config={
+                            "#": st.column_config.NumberColumn("#", width="small"),
+                            "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        },
+                        use_container_width=True,
+                        height=250,
+                        hide_index=True
+                    )
         else:
             st.info("No stats available for last 14 days")
     
     with tab3:
         if not stats_30d.empty:
-            section_header("Last 30 Days (Yahoo Roster Order)", "")
+            # Split into Hitters and Pitchers
+            hitters_30d = stats_30d[~stats_30d['position'].isin(['SP', 'RP', 'SP,RP', 'P'])].copy()
+            pitchers_30d = stats_30d[stats_30d['position'].isin(['SP', 'RP', 'SP,RP', 'P'])].copy()
             
-            # Add Yahoo player links
-            stats_30d_display = stats_30d.copy()
-            try:
-                roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
-                if roster_files:
-                    yahoo_roster = pd.read_csv(roster_files[0])
-                    if 'player_key' in yahoo_roster.columns:
-                        player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
-                        stats_30d_display['player_key'] = stats_30d_display['player_name'].map(player_key_map).fillna('')
-                        stats_30d_display['yahoo_link'] = stats_30d_display['player_key'].apply(
-                            lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
-                            if pk and '.' in str(pk) else ''
-                        )
-            except:
-                stats_30d_display['yahoo_link'] = ''
+            # Hitters Section
+            if not hitters_30d.empty:
+                st.markdown("### 🔨 Hitters - Last 30 Days")
+                
+                # Add Yahoo player links
+                try:
+                    roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                    if roster_files:
+                        yahoo_roster = pd.read_csv(roster_files[0])
+                        if 'player_key' in yahoo_roster.columns:
+                            player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                            hitters_30d['player_key'] = hitters_30d['player_name'].map(player_key_map).fillna('')
+                            hitters_30d['yahoo_link'] = hitters_30d['player_key'].apply(
+                                lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                if pk and '.' in str(pk) else ''
+                            )
+                except:
+                    hitters_30d['yahoo_link'] = ''
+                
+                hitters_30d['#'] = range(1, len(hitters_30d) + 1)
+                
+                display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'position', 'team', 'games', 'ab', 'h', 'r', 'rbi', 'hr', 'sb', 'avg', 'ops']
+                hitters_display = hitters_30d[[col for col in display_cols if col in hitters_30d.columns]].copy()
+                if 'avg' in hitters_display.columns:
+                    hitters_display['avg'] = hitters_display['avg'].round(3)
+                if 'ops' in hitters_display.columns:
+                    hitters_display['ops'] = hitters_display['ops'].round(3)
+                
+                st.dataframe(
+                    hitters_display,
+                    column_config={
+                        "#": st.column_config.NumberColumn("#", width="small"),
+                        "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        "avg": st.column_config.NumberColumn("AVG", format="%.3f"),
+                        "ops": st.column_config.NumberColumn("OPS", format="%.3f"),
+                    },
+                    use_container_width=True,
+                    height=400,
+                    hide_index=True
+                )
             
-            display_cols = ['player_name', 'yahoo_link', 'status', 'position', 'team', 'games', 'ab', 'h', 'r', 'rbi', 'hr', 'sb', 'avg', 'ops']
-            all_display = stats_30d_display[[col for col in display_cols if col in stats_30d_display.columns]].copy()
-            if 'avg' in all_display.columns:
-                all_display['avg'] = all_display['avg'].round(3)
-            if 'ops' in all_display.columns:
-                all_display['ops'] = all_display['ops'].round(3)
-            
-            st.dataframe(
-                all_display,
-                column_config={
-                    "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗"),
-                    "avg": st.column_config.NumberColumn("avg", format="%.3f"),
-                    "ops": st.column_config.NumberColumn("ops", format="%.3f"),
-                },
-                use_container_width=True,
-                height=600
-            )
+            # Pitchers Section
+            if not pitchers_30d.empty:
+                st.markdown("### ⚾ Pitchers - Last 30 Days")
+                
+                sp_30d = pitchers_30d[pitchers_30d['position'].str.contains('SP')].copy()
+                rp_30d = pitchers_30d[pitchers_30d['position'].str.contains('RP') & ~pitchers_30d['position'].str.contains('SP')].copy()
+                
+                if not sp_30d.empty:
+                    st.markdown("**Starting Pitchers (SP)**")
+                    try:
+                        roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                        if roster_files:
+                            yahoo_roster = pd.read_csv(roster_files[0])
+                            if 'player_key' in yahoo_roster.columns:
+                                player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                                sp_30d['player_key'] = sp_30d['player_name'].map(player_key_map).fillna('')
+                                sp_30d['yahoo_link'] = sp_30d['player_key'].apply(
+                                    lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                    if pk and '.' in str(pk) else ''
+                                )
+                    except:
+                        sp_30d['yahoo_link'] = ''
+                    
+                    sp_30d['#'] = range(1, len(sp_30d) + 1)
+                    
+                    display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'team', 'games']
+                    sp_display = sp_30d[[col for col in display_cols if col in sp_30d.columns]].copy()
+                    
+                    st.dataframe(
+                        sp_display,
+                        column_config={
+                            "#": st.column_config.NumberColumn("#", width="small"),
+                            "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        },
+                        use_container_width=True,
+                        height=250,
+                        hide_index=True
+                    )
+                
+                if not rp_30d.empty:
+                    st.markdown("**Relief Pitchers (RP)**")
+                    try:
+                        roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+                        if roster_files:
+                            yahoo_roster = pd.read_csv(roster_files[0])
+                            if 'player_key' in yahoo_roster.columns:
+                                player_key_map = dict(zip(yahoo_roster['player_name'], yahoo_roster['player_key']))
+                                rp_30d['player_key'] = rp_30d['player_name'].map(player_key_map).fillna('')
+                                rp_30d['yahoo_link'] = rp_30d['player_key'].apply(
+                                    lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                                    if pk and '.' in str(pk) else ''
+                                )
+                    except:
+                        rp_30d['yahoo_link'] = ''
+                    
+                    rp_30d['#'] = range(1, len(rp_30d) + 1)
+                    
+                    display_cols = ['#', 'player_name', 'yahoo_link', 'status', 'team', 'games']
+                    rp_display = rp_30d[[col for col in display_cols if col in rp_30d.columns]].copy()
+                    
+                    st.dataframe(
+                        rp_display,
+                        column_config={
+                            "#": st.column_config.NumberColumn("#", width="small"),
+                            "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗", width="small"),
+                        },
+                        use_container_width=True,
+                        height=250,
+                        hide_index=True
+                    )
         else:
             st.info("No stats available for last 30 days")
     
