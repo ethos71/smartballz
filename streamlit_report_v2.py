@@ -203,7 +203,43 @@ render_summary_metrics(df_summary)
 st.markdown("---")
 
 # SECTION 2: Current Roster Performance
-render_current_roster_performance(selected_team)
+# Load roster and stats (inline from original - this section needs its own data)
+@st.cache_data
+def load_roster_stats(team_filter):
+    from datetime import timedelta
+    
+    # Get latest roster
+    roster_files = sorted(glob.glob('data/yahoo_fantasy_rosters_*.csv'), reverse=True)
+    if not roster_files:
+        return None, None
+    
+    roster = pd.read_csv(roster_files[0])
+    
+    # Filter by fantasy team
+    if team_filter and 'fantasy_team' in roster.columns:
+        roster = roster[roster['fantasy_team'] == team_filter]
+    
+    # Load game logs
+    try:
+        game_logs = pd.read_csv('data/mlb_game_logs_2025.csv')
+        game_logs['game_date'] = pd.to_datetime(game_logs['game_date'])
+        
+        # Calculate stats for last 7, 14, 30 days from Sept 28
+        target_date = pd.to_datetime('2025-09-28')
+        
+        # Use helper from data_loaders
+        from scripts.streamlit_components.data_loaders import calculate_period_stats
+        
+        stats_7d = calculate_period_stats(game_logs, roster, target_date, 7)
+        stats_14d = calculate_period_stats(game_logs, roster, target_date, 14)
+        stats_30d = calculate_period_stats(game_logs, roster, target_date, 30)
+        
+        return roster, (stats_7d, stats_14d, stats_30d)
+    except:
+        return roster, None
+
+roster, period_stats = load_roster_stats(selected_team)
+render_current_roster_performance(roster, period_stats)
 
 # SECTION 3: Top Starts & Bottom Sits
 render_top_starts_sits(df_summary)
