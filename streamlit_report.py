@@ -258,6 +258,187 @@ render_full_rankings(df_summary)
 # SECTION 7: Waiver Wire
 render_waiver_wire()
 
+# SECTION 8: Factor Analysis Legend
+st.markdown("---")
+st.markdown("## 📖 Factor Analysis Legend")
+st.markdown("---")
+
+with st.expander("ℹ️ View Complete Factor Descriptions", expanded=False):
+    st.markdown("""
+    ### Understanding the 20+ Factors That Drive Sit/Start Decisions
+    
+    Each factor is assigned a weight based on its historical importance to player performance. 
+    The weighted factors combine to create your final sit/start score.
+    
+    ---
+    
+    #### 🎰 High Impact Factors (15-20% weight)
+    
+    **Vegas (15-20%)**
+    - **What it measures:** Betting market expectations for game outcomes
+    - **Data sources:** Over/Under totals, implied team runs, win probability
+    - **Why it matters:** Vegas lines aggregate all available information and are highly predictive
+    - **Example:** A team with 5.5 implied runs is a much better play than one with 3.0 runs
+    
+    ---
+    
+    #### 📊 Major Impact Factors (10-15% weight)
+    
+    **Statcast (10-15%)**
+    - **What it measures:** Advanced batted ball and pitch quality metrics
+    - **Data sources:** Exit velocity, barrel rate, hard-hit %, xBA, xSLG, expected stats
+    - **Why it matters:** Shows true underlying skill independent of luck
+    - **Example:** A hitter with 95+ mph avg exit velo is elite even if batting .240
+    
+    ---
+    
+    #### ⚾ Moderate Impact Factors (8-12% weight)
+    
+    **Matchup (8-12%)**
+    - **What it measures:** Historical performance vs specific pitcher/team
+    - **Data sources:** Career stats vs opponent, recent matchup history
+    - **Why it matters:** Some players consistently mash certain pitchers
+    - **Example:** Player hitting .400 with 3 HR in 10 career AB vs today's starter
+    
+    **Bullpen (8-12%)**
+    - **What it measures:** Opponent bullpen strength and fatigue
+    - **Data sources:** Bullpen ERA, recent usage, days since rest
+    - **Why it matters:** Weak/tired bullpens lead to more runs late in games
+    - **Example:** Bullpen that pitched 3 straight days is vulnerable
+    
+    **Platoon (8-12%)**
+    - **What it measures:** Left/Right handedness matchup advantages
+    - **Data sources:** L vs R and R vs L splits for both hitters and pitchers
+    - **Why it matters:** Some players have massive platoon splits (100+ OPS points)
+    - **Example:** Lefty hitter facing RHP when he hits .310 vs RHP but .220 vs LHP
+    
+    ---
+    
+    #### 🏟️ Notable Impact Factors (5-8% weight)
+    
+    **Home/Away (5-8%)**
+    - **What it measures:** Home field advantage and venue familiarity
+    - **Data sources:** Home vs road splits for players and teams
+    - **Why it matters:** Many players perform significantly better at home
+    - **Example:** Hitter with .280 avg at home vs .240 on road
+    
+    **Injury (5-8%)**
+    - **What it measures:** Player health status and injury recovery
+    - **Data sources:** DTD status, recently returned from IL, injury reports
+    - **Why it matters:** Injured or recently injured players underperform
+    - **Example:** Player returning from IL may be limited or rusty
+    
+    **Park (5-8%)**
+    - **What it measures:** Ballpark dimensions and run-scoring environment
+    - **Data sources:** Park factors for runs, HRs, dimensions, altitude
+    - **Why it matters:** Coors Field vs Petco Park is a huge difference
+    - **Example:** Game in Coors (high altitude) = +20% run scoring
+    
+    **Recent Form (5-8%)**
+    - **What it measures:** Last 7/14/30 day performance trends
+    - **Data sources:** Rolling averages of key stats
+    - **Why it matters:** Hot/cold streaks tend to persist short-term
+    - **Example:** Player hitting .350 with 5 HR in last 14 days is on fire
+    
+    **Wind (5-8%)**
+    - **What it measures:** Wind speed and direction impact on ball flight
+    - **Data sources:** Weather forecasts, wind speed/direction at game time
+    - **Why it matters:** Wind blowing out helps offense, in helps pitchers
+    - **Example:** 15 mph wind blowing out to center = more HRs
+    
+    ---
+    
+    #### 📈 Supporting Impact Factors (3-5% weight)
+    
+    **Rest (3-5%)**
+    - **What it measures:** Days off since last game
+    - **Data sources:** Game logs, rest days
+    - **Why it matters:** Fresh players perform better, especially power hitters
+    - **Example:** Player after 2 days rest vs playing 10 straight
+    
+    **Temperature (3-5%)**
+    - **What it measures:** Game-time temperature
+    - **Data sources:** Weather forecasts
+    - **Why it matters:** Warmer weather = ball travels farther
+    - **Example:** 85°F game vs 55°F game = 10-15 ft difference on fly balls
+    
+    **Lineup (3-5%)**
+    - **What it measures:** Batting order position
+    - **Data sources:** Published lineups
+    - **Why it matters:** 1-3 hitters get ~1 more AB per game than 7-9
+    - **Example:** Leadoff hitter gets ~4.5 PA vs cleanup ~4.2 vs #9 ~3.8
+    
+    **Umpire (3-5%)**
+    - **What it measures:** Home plate umpire strike zone tendencies
+    - **Data sources:** Umpire scorecards, historical zone data
+    - **Why it matters:** Some umps call +1 inch larger/smaller zone
+    - **Example:** Umpire with tight zone favors hitters; large zone favors pitchers
+    
+    **Pitch Mix (3-5%)**
+    - **What it measures:** How pitcher's arsenal matches hitter's strengths/weaknesses
+    - **Data sources:** Pitch type frequencies, hitter results vs pitch types
+    - **Why it matters:** Some hitters crush fastballs but struggle vs breaking balls
+    - **Example:** Fastball hitter vs pitcher who throws 70% offspeed
+    
+    ---
+    
+    #### 🔍 Minor Impact Factors (1-3% weight)
+    
+    **Time (1-3%)**
+    - **What it measures:** Day vs night game performance
+    - **Data sources:** Day/night splits
+    - **Why it matters:** Some players have significant day/night splits
+    - **Example:** Player hitting .290 in day games vs .250 at night
+    
+    **Humidity (1-3%)**
+    - **What it measures:** Humidity and elevation effects on ball flight
+    - **Data sources:** Weather data, stadium altitude
+    - **Why it matters:** High humidity = thicker air = less distance
+    - **Example:** 90% humidity in Miami vs 20% in Denver
+    
+    **Defense (1-3%)**
+    - **What it measures:** Defensive positioning and opponent defense quality
+    - **Data sources:** Shift data, team defensive metrics
+    - **Why it matters:** Better defense = fewer hits allowed
+    - **Example:** Playing vs elite defensive team reduces BABIP
+    
+    **Monthly (1-3%)**
+    - **What it measures:** Performance by calendar month
+    - **Data sources:** April/May/June/July/Aug/Sept splits
+    - **Why it matters:** Some players are slow/hot starters
+    - **Example:** Player with .320 Aug average but .250 April average
+    
+    **Momentum (1-3%)**
+    - **What it measures:** Team win/loss streaks
+    - **Data sources:** Recent team performance
+    - **Why it matters:** Teams on hot streaks tend to continue briefly
+    - **Example:** Team on 7-game win streak has confidence boost
+    
+    ---
+    
+    ### 💡 How to Use These Scores:
+    
+    - **+2.0 or higher:** 🌟 Elite matchup - MUST START
+    - **+0.5 to +2.0:** ✅ Favorable - Strong start candidate  
+    - **-0.5 to +0.5:** ⚖️ Neutral - Consider other factors (roster depth, categories)
+    - **-2.0 to -0.5:** ⚠️ Unfavorable - Bench candidate
+    - **Below -2.0:** 🚫 Terrible matchup - BENCH
+    
+    ### 🎯 Key Insights:
+    
+    1. **Weights are auto-tuned** based on historical performance for your specific players
+    2. **Factors work together** - one strong positive can't overcome multiple negatives
+    3. **Context matters** - a -0.3 score for your worst bench player is different than for your ace
+    4. **Trust the data** - the model uses 3+ years of historical data for optimization
+    5. **Check the details** - click on individual players to see which factors are driving their score
+    
+    ---
+    
+    **Remember:** These factors are weighted and combined using machine learning (XGBoost) to produce 
+    the most accurate sit/start predictions possible. The system learns from thousands of games to 
+    understand which factors matter most for each player type.
+    """)
+
 # Footer
 st.markdown("---")
 st.markdown("""
