@@ -112,7 +112,7 @@ def check_and_run_daily_waiver():
     
     if should_run:
         st.sidebar.warning("⚠️ Waiver wire data needs update")
-        if st.sidebar.button("🔄 Run Waiver Wire Analysis"):
+        if st.sidebar.button("🔄 Run Waiver Wire Analysis", key="btn_daily_waiver"):
             with st.sidebar:
                 with st.spinner("Running waiver wire analysis..."):
                     try:
@@ -165,16 +165,16 @@ if roster_data is not None and 'fantasy_team' in roster_data.columns:
     col1, col2 = st.sidebar.columns(2)
     
     with col1:
-        if st.sidebar.button("🔄 Rerun Analysis", help="Regenerate recommendations with current settings", use_container_width=True):
+        if st.sidebar.button("🔄 Rerun Analysis", help="Regenerate recommendations with current settings", use_container_width=True, key="btn_rerun"):
             st.sidebar.info("Rerun analysis functionality - implementation in progress")
     
     with col2:
-        if st.sidebar.button("📥 Refresh Data", help="Reload data from files", use_container_width=True):
+        if st.sidebar.button("📥 Refresh Data", help="Reload data from files", use_container_width=True, key="btn_refresh"):
             st.cache_data.clear()
             st.rerun()
     
     # Waiver Wire Button
-    if st.sidebar.button("🔍 Waiver Wire", help="Analyze top free agents", use_container_width=True):
+    if st.sidebar.button("🔍 Waiver Wire", help="Analyze top free agents", use_container_width=True, key="btn_waiver"):
         st.sidebar.info("Running waiver wire analysis...")
 
 else:

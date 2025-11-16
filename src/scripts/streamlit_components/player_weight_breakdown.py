@@ -16,9 +16,7 @@ def render_player_weight_breakdown(df: pd.DataFrame):
     Args:
         df: DataFrame with player data including factor scores and weights
     """
-    from streamlit_report import section_header
-    
-    section_header("Player Weight Breakdown", "⚖️")
+    st.markdown('<div class="section-header-container"><h2>⚖️ Player Weight Breakdown</h2></div>', unsafe_allow_html=True)
     st.markdown("View individual factor weights for roster players and top waiver wire prospects")
     
     # Create tabs for roster vs waiver wire
