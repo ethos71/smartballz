@@ -25,3 +25,6 @@ data/
 # Backup files
 *.bak
 *_OLD.md
+
+# Log files
+*.log
