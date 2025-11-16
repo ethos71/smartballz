@@ -27,6 +27,7 @@ def render_current_roster_performance(roster, period_stats):
     with col_header:
         st.markdown('<div class="section-header-container"><h2>📊 Current Roster Performance</h2></div>', unsafe_allow_html=True)
     with col_help:
+        st.markdown('<div class="section-header-container"><h2>', unsafe_allow_html=True)
         with st.popover("ℹ️"):
             st.markdown("""
         ### What You're Seeing
@@ -87,6 +88,7 @@ def render_current_roster_performance(roster, period_stats):
             - Bench players with poor stats may need roster moves
             - Players in Yahoo roster order = same order as your Yahoo team
             """)
+        st.markdown('</h2></div>', unsafe_allow_html=True)
     
     stats_7d, stats_14d, stats_30d = period_stats
     
