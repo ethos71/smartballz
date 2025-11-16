@@ -6,7 +6,8 @@ Displays factor weights for roster players and waiver wire prospects.
 
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.express as px
+import glob
 
 
 def render_player_weight_breakdown(df: pd.DataFrame):
@@ -56,152 +57,134 @@ def _render_roster_players_tab(df):
             - **Calibrated:** Weights are optimized based on historical performance data
             - **Example:** If the wind factor has a weight of 0.15 (15%), it contributes 15% to the final score
             
-            ### Weighted Contribution
-            **Weighted Contribution = Factor Score × Factor Weight**
+            ### How They Work Together
+            **Final Score = Σ (Factor Score × Factor Weight)**
             
-            This shows the actual impact of each factor on the final recommendation:
-            - **Example:** Wind score of +2.0 × weight of 0.15 = +0.30 contribution to final score
-            - **Final Score:** Sum of all weighted contributions across 20 factors
+            For each player, we:
+            1. Calculate 20 different factor scores (wind, umpire, park, etc.)
+            2. Multiply each score by its weight
+            3. Sum all weighted scores to get the final recommendation score
             
-            ### How to Use This View
-            1. **Select a player** from the dropdown to see their specific factor breakdown
-            2. **Review Factor Weights** - Which factors matter most for this player?
-            3. **Check Factor Scores** - Which conditions are favorable/unfavorable today?
-            4. **Analyze Contributions** - Which factors are driving the sit/start decision?
-            
-            ### Real-World Example
-            **Aaron Judge on a windy day:**
-            - Wind Score: +2.0 (strong wind out) × Weight: 0.045 = **+0.09 contribution**
-            - Vegas Score: +1.5 (high O/U) × Weight: 0.20 = **+0.30 contribution**  
-            - Park Score: +0.8 (hitter park) × Weight: 0.06 = **+0.05 contribution**
-            - ... (17 more factors)
-            - **Final Score: +0.62 → 🌟 STRONG START**
+            **Example Calculation:**
+            - Wind Score: +2.0, Weight: 0.15 → Contribution: +0.30
+            - Umpire Score: +0.7, Weight: 0.08 → Contribution: +0.056
+            - Park Score: -0.5, Weight: 0.12 → Contribution: -0.06
+            - *... (17 more factors)*
+            - **Final Score: Sum of all contributions → Sit/Start recommendation**
             """)
     
-    # Get unique players sorted by final score
-    players = df.sort_values('final_score', ascending=False)['player_name'].unique().tolist()
+    # Get all weight columns
+    weight_cols = [col for col in df.columns if col.endswith('_weight')]
     
-    if len(players) == 0:
-        st.warning("No player data available")
-        return
-    
-    # Player selection
-    selected_player = st.selectbox(
-        "Select player to view detailed weights:",
-        players,
-        key="weight_breakdown_player"
-    )
-    
-    # Get player data
-    player_data = df[df['player_name'] == selected_player].iloc[0]
-    
-    # Get factor columns
-    factor_scores = {col.replace('_score', ''): player_data[col] 
-                    for col in df.columns if col.endswith('_score') and col != 'final_score'}
-    factor_weights = {col.replace('_weight', ''): player_data[col] 
-                     for col in df.columns if col.endswith('_weight')}
-    
-    # Create visualization tabs
-    viz_tab1, viz_tab2, viz_tab3 = st.tabs(["Factor Weights", "Factor Scores", "Weighted Contribution to Final Score"])
-    
-    with viz_tab1:
-        _render_factor_weights_chart(factor_weights)
-    
-    with viz_tab2:
-        _render_factor_scores_chart(factor_scores)
-    
-    with viz_tab3:
-        _render_weighted_contribution_chart(factor_scores, factor_weights)
-
-
-def _render_factor_weights_chart(factor_weights):
-    """Render factor weights bar chart"""
-    import plotly.graph_objects as go
-    
-    sorted_weights = dict(sorted(factor_weights.items(), key=lambda x: x[1], reverse=True))
-    
-    fig = go.Figure(data=[
-        go.Bar(
-            x=list(sorted_weights.values()),
-            y=list(sorted_weights.keys()),
-            orientation='h',
-            marker=dict(color='lightblue')
+    if weight_cols:
+        # Allow user to select a player
+        selected_player = st.selectbox(
+            "Select player to view detailed weights:",
+            df['player_name'].tolist(),
+            key="weight_breakdown_player"
         )
-    ])
-    
-    fig.update_layout(
-        title="Factor Weights (Importance)",
-        xaxis_title="Weight (0-1 scale)",
-        yaxis_title="Factor",
-        height=600,
-        showlegend=False
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def _render_factor_scores_chart(factor_scores):
-    """Render factor scores bar chart"""
-    import plotly.graph_objects as go
-    
-    sorted_scores = dict(sorted(factor_scores.items(), key=lambda x: x[1], reverse=True))
-    
-    # Color by positive/negative
-    colors = ['green' if v > 0 else 'red' if v < 0 else 'gray' for v in sorted_scores.values()]
-    
-    fig = go.Figure(data=[
-        go.Bar(
-            x=list(sorted_scores.values()),
-            y=list(sorted_scores.keys()),
-            orientation='h',
-            marker=dict(color=colors)
-        )
-    ])
-    
-    fig.update_layout(
-        title="Factor Scores (Favorability)",
-        xaxis_title="Score (-2 to +2 scale)",
-        yaxis_title="Factor",
-        height=600,
-        showlegend=False
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def _render_weighted_contribution_chart(factor_scores, factor_weights):
-    """Render weighted contribution chart"""
-    import plotly.graph_objects as go
-    
-    # Calculate weighted contributions
-    contributions = {}
-    for factor in factor_scores.keys():
-        if factor in factor_weights:
-            contributions[factor] = factor_scores[factor] * factor_weights[factor]
-    
-    sorted_contributions = dict(sorted(contributions.items(), key=lambda x: abs(x[1]), reverse=True))
-    
-    # Color by positive/negative
-    colors = ['green' if v > 0 else 'red' if v < 0 else 'gray' for v in sorted_contributions.values()]
-    
-    fig = go.Figure(data=[
-        go.Bar(
-            x=list(sorted_contributions.values()),
-            y=list(sorted_contributions.keys()),
-            orientation='h',
-            marker=dict(color=colors)
-        )
-    ])
-    
-    fig.update_layout(
-        title="Weighted Contribution to Final Score",
-        xaxis_title="Contribution (Score × Weight)",
-        yaxis_title="Factor",
-        height=600,
-        showlegend=False
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+        
+        if selected_player:
+            player_row = df[df['player_name'] == selected_player].iloc[0]
+            
+            # Extract weights and scores for this player
+            player_weights = {}
+            player_scores = {}
+            for col in weight_cols:
+                factor_name = col.replace('_weight', '').title()
+                weight_val = player_row[col]
+                score_col = col.replace('_weight', '_score')
+                score_val = player_row[score_col] if score_col in df.columns else 0
+                
+                if weight_val > 0:  # Only show factors with weight
+                    player_weights[factor_name] = weight_val
+                    player_scores[factor_name] = score_val
+            
+            # Create dual chart - weights and scores
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**Factor Weights**")
+                fig_weights = px.bar(
+                    x=list(player_weights.keys()),
+                    y=list(player_weights.values()),
+                    labels={'x': 'Factor', 'y': 'Weight'},
+                    color=list(player_weights.values()),
+                    color_continuous_scale='Blues',
+                    title=f'{selected_player} - Factor Weights'
+                )
+                fig_weights.update_layout(showlegend=False, xaxis_tickangle=-45)
+                st.plotly_chart(fig_weights, use_container_width=True)
+            
+            with col2:
+                st.markdown("**Factor Scores**")
+                fig_scores = px.bar(
+                    x=list(player_scores.keys()),
+                    y=list(player_scores.values()),
+                    labels={'x': 'Factor', 'y': 'Score'},
+                    color=list(player_scores.values()),
+                    color_continuous_scale='RdYlGn',
+                    title=f'{selected_player} - Factor Scores'
+                )
+                fig_scores.update_layout(showlegend=False, xaxis_tickangle=-45)
+                st.plotly_chart(fig_scores, use_container_width=True)
+            
+            # Show contribution breakdown with help icon
+            col_contrib, col_help_contrib = st.columns([10, 1])
+            with col_contrib:
+                st.markdown("**Weighted Contribution to Final Score**")
+            with col_help_contrib:
+                with st.popover("ℹ️"):
+                    st.markdown("""
+                    ### Understanding Contributions
+                    
+                    This table shows how each factor contributes to the player's final score.
+                    
+                    **Contribution Formula:**
+                    ```
+                    Contribution = Factor Score × Factor Weight
+                    ```
+                    
+                    **Column Meanings:**
+                    - **Factor:** The name of the analysis factor
+                    - **Weight:** How important this factor is (0-100%)
+                    - **Score:** The raw factor score for this matchup
+                    - **Contribution:** The weighted impact on final score
+                    
+                    **Interpreting the Table:**
+                    - **Positive Contributions (Green):** Help the player's ranking
+                    - **Negative Contributions (Red):** Hurt the player's ranking
+                    - **Largest Contributions:** Main drivers of recommendation
+                    
+                    **Example:**
+                    ```
+                    Factor: Wind
+                    Weight: 15.0%
+                    Score: +2.0 (strong wind blowing out)
+                    Contribution: +0.30 (2.0 × 0.15)
+                    → Wind is a major positive factor!
+                    ```
+                    
+                    **Strategy:**
+                    - Look for multiple positive contributions = confident start
+                    - One big negative can override several positives
+                    - Sum of all contributions = Final Score
+                    """)
+            
+            contributions = {factor: score * player_weights.get(factor, 0) 
+                           for factor, score in player_scores.items()}
+            contrib_df = pd.DataFrame({
+                'Factor': list(contributions.keys()),
+                'Weight': [player_weights.get(f, 0) for f in contributions.keys()],
+                'Score': [player_scores.get(f, 0) for f in contributions.keys()],
+                'Contribution': list(contributions.values())
+            })
+            contrib_df = contrib_df.sort_values('Contribution', ascending=False)
+            st.dataframe(contrib_df.style.format({
+                'Weight': '{:.1%}',
+                'Score': '{:.3f}',
+                'Contribution': '{:.3f}'
+            }).background_gradient(subset=['Contribution'], cmap='RdYlGn'), use_container_width=True)
 
 
 def _render_waiver_wire_tab():
@@ -209,46 +192,70 @@ def _render_waiver_wire_tab():
     import glob
     import pandas as pd
     
-    # Load waiver wire data
+    st.markdown("#### Top 10 Waiver Wire Prospects")
+    
+    # Load waiver wire data if available
     waiver_files = sorted(glob.glob('data/waiver_wire_*.csv'), reverse=True)
     
     if waiver_files:
         waiver_df = pd.read_csv(waiver_files[0])
-        
         if len(waiver_df) > 0:
-            st.markdown("#### Top 10 Waiver Wire Prospects")
+            # Show top 10 waiver wire options
+            top_waiver = waiver_df.nlargest(10, 'final_score') if 'final_score' in waiver_df.columns else waiver_df.head(10)
             
-            # Get top 10 by final score
-            top_waiver = waiver_df.nlargest(10, 'final_score')
+            # Add Yahoo player links if available
+            if 'player_key' in top_waiver.columns:
+                top_waiver['yahoo_link'] = top_waiver['player_key'].apply(
+                    lambda pk: f"https://baseball.fantasysports.yahoo.com/b1/3119/3/{pk.split('.')[-1]}" 
+                    if pk and '.' in str(pk) else ''
+                )
+                st.dataframe(
+                    top_waiver[['player_name', 'yahoo_link', 'final_score', 'recommendation']].head(10),
+                    column_config={
+                        "yahoo_link": st.column_config.LinkColumn("Yahoo", display_text="🔗")
+                    },
+                    use_container_width=True
+                )
+            else:
+                st.dataframe(top_waiver[['player_name', 'final_score', 'recommendation']].head(10), use_container_width=True)
             
-            # Player selection
-            waiver_players = top_waiver['player_name'].tolist()
-            selected_waiver = st.selectbox(
-                "Select waiver wire player:",
-                waiver_players,
-                key="waiver_weight_breakdown"
-            )
-            
-            # Get player data
-            player_data = waiver_df[waiver_df['player_name'] == selected_waiver].iloc[0]
-            
-            # Get factor columns
-            factor_scores = {col.replace('_score', ''): player_data[col] 
-                           for col in waiver_df.columns if col.endswith('_score') and col != 'final_score'}
-            factor_weights = {col.replace('_weight', ''): player_data[col] 
-                            for col in waiver_df.columns if col.endswith('_weight')}
-            
-            # Create visualization tabs
-            viz_tab1, viz_tab2, viz_tab3 = st.tabs(["Factor Weights", "Factor Scores", "Weighted Contribution"])
-            
-            with viz_tab1:
-                _render_factor_weights_chart(factor_weights)
-            
-            with viz_tab2:
-                _render_factor_scores_chart(factor_scores)
-            
-            with viz_tab3:
-                _render_weighted_contribution_chart(factor_scores, factor_weights)
+            # Allow selection for detailed view
+            if len(top_waiver) > 0:
+                # Get weight columns from waiver data
+                weight_cols = [col for col in waiver_df.columns if col.endswith('_weight')]
+                
+                selected_fa = st.selectbox(
+                    "Select waiver player for details:", 
+                    top_waiver['player_name'].tolist(),
+                    key="waiver_weight_breakdown"
+                )
+                
+                if selected_fa and selected_fa in top_waiver['player_name'].values:
+                    fa_row = top_waiver[top_waiver['player_name'] == selected_fa].iloc[0]
+                    
+                    # Extract weights and scores
+                    fa_weights = {}
+                    fa_scores = {}
+                    for col in weight_cols:
+                        factor_name = col.replace('_weight', '').title()
+                        weight_val = fa_row[col] if col in fa_row else 0
+                        score_col = col.replace('_weight', '_score')
+                        score_val = fa_row[score_col] if score_col in fa_row else 0
+                        
+                        if weight_val > 0:
+                            fa_weights[factor_name] = weight_val
+                            fa_scores[factor_name] = score_val
+                    
+                    # Show chart
+                    fig_fa = px.bar(
+                        x=list(fa_weights.keys()),
+                        y=list(fa_weights.values()),
+                        labels={'x': 'Factor', 'y': 'Weight'},
+                        title=f'{selected_fa} - Factor Weights',
+                        color_discrete_sequence=['#ff7f0e']
+                    )
+                    fig_fa.update_layout(showlegend=False, xaxis_tickangle=-45)
+                    st.plotly_chart(fig_fa, use_container_width=True)
         else:
             st.info("No waiver wire data available in this analysis")
     else:
