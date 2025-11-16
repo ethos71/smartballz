@@ -173,7 +173,7 @@ if roster_data is not None and 'fantasy_team' in roster_data.columns:
             st.cache_data.clear()
             st.rerun()
     
-    # Waiver Wire Button
+    # Waiver Wire Button - full width under other buttons
     if st.sidebar.button("🔍 Waiver Wire", help="Analyze top free agents", use_container_width=True, key="btn_waiver"):
         st.sidebar.info("Running waiver wire analysis...")
 
