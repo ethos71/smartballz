@@ -11,7 +11,7 @@ import pandas as pd
 def render_top_starts_sits(df: pd.DataFrame):
     """
     Render top starts and bottom sits section
-    
+    0
     Args:
         df: DataFrame with player data including final_score and player_type
     """

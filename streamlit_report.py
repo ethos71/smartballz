@@ -21,20 +21,37 @@ st.set_page_config(
     layout="wide"
 )
 
-# Add custom CSS for section headers and progress bars
+# Add custom CSS for section headers and bordered sections
 st.markdown("""
 <style>
-    .section-header-container {
-        background-color: #f0f2f6;
-        padding: 10px 15px;
-        border-radius: 5px;
+    /* Section container with border */
+    .section-container {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0;
         margin-top: 20px;
-        margin-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    /* Section header with border */
+    .section-header-container {
+        background-color: transparent;
+        padding: 15px 20px;
+        border-bottom: 2px solid #e0e0e0;
+        margin: 0;
     }
     .section-header-container h2 {
         margin: 0;
         padding: 0;
+        color: #1f1f1f;
     }
+    
+    /* Section content area */
+    .section-content {
+        padding: 20px;
+    }
+    
+    /* Progress bars */
     .stProgress > div > div > div > div {
         background-color: #4CAF50;
     }
@@ -103,6 +120,17 @@ check_and_run_daily_waiver()
 # Title
 st.title("⚾ Fantasy Baseball AI - Sit/Start Analysis")
 st.markdown("### Last Week of 2025 Season (Sept 28, 2025)")
+
+# Get file metadata for sidebar (moved up to display at top)
+rec_files_for_sidebar = sorted(glob.glob('data/sitstart_recommendations_*.csv'), reverse=True)
+if rec_files_for_sidebar:
+    latest_file_for_sidebar = rec_files_for_sidebar[0]
+    file_timestamp = latest_file_for_sidebar.split('_')[-2] + '_' + latest_file_for_sidebar.split('_')[-1].replace('.csv', '')
+    file_date = datetime.strptime(file_timestamp, '%Y%m%d_%H%M%S')
+    
+    st.sidebar.markdown(f"**Analysis Date:** {file_date.strftime('%Y-%m-%d %I:%M %p')}")
+    st.sidebar.markdown(f"**File:** `{os.path.basename(latest_file_for_sidebar)}`")
+    st.sidebar.markdown("---")
 
 # Load roster to get team names
 @st.cache_data
@@ -614,6 +642,9 @@ def calculate_period_stats(game_logs, roster, target_date, days):
 roster, period_stats = load_roster_stats(selected_team)
 
 if roster is not None and period_stats is not None:
+    # Start section container
+    st.markdown('<div class="section-container">', unsafe_allow_html=True)
+    
     # Header with help icon
     col_header, col_help = st.columns([0.95, 0.05])
     with col_header:
@@ -1053,19 +1084,14 @@ if roster is not None and period_stats is not None:
         else:
             st.info("No stats available for last 30 days")
     
+    # End section container
+    st.markdown('</div>', unsafe_allow_html=True)
     st.markdown("---")
 
 # Continue with detailed recommendations display
 if not rec_files:
     st.error("❌ No recommendations files found!")
     st.stop()
-
-# Get file metadata for sidebar
-file_timestamp = latest_file.split('_')[-2] + '_' + latest_file.split('_')[-1].replace('.csv', '')
-file_date = datetime.strptime(file_timestamp, '%Y%m%d_%H%M%S')
-
-st.sidebar.markdown(f"**Analysis Date:** {file_date.strftime('%Y-%m-%d %I:%M %p')}")
-st.sidebar.markdown(f"**File:** `{os.path.basename(latest_file)}`")
 
 # Load data for detailed display
 @st.cache_data
@@ -1144,9 +1170,14 @@ else:
     df = st.session_state.df
 
 # Top Starts and Sits - Split by Hitters and Pitchers with help icon
-st.markdown('<div class="section-header-container"><h2>🌟🚫 Top Starts & Bottom Sits</h2></div>', unsafe_allow_html=True)
-with st.popover("" \
-"ℹ️"):
+# Start section container
+st.markdown('<div class="section-container">', unsafe_allow_html=True)
+
+col_header, col_help = st.columns([0.95, 0.05])
+with col_header:
+    st.markdown('<div class="section-header-container"><h2>🌟🚫 Top Starts & Bottom Sits</h2></div>', unsafe_allow_html=True)
+with col_help:
+    with st.popover("ℹ️"):
         st.markdown("""
     ### How to Read These Recommendations
         
@@ -1332,6 +1363,8 @@ with col_sits:
             height=210
         )
 
+# End section container
+st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("---")
 
 # Player Weight Breakdown Section
