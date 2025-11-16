@@ -1095,14 +1095,22 @@ def load_data(filepath, team_filter):
             how='left'
         )
         # Categorize as Hitter or Pitcher
-        df['player_type'] = df['position_type'].apply(
-            lambda x: 'Pitcher' if x == 'Pitcher' else 'Hitter'
+        # First check Yahoo position for SP/RP designation
+        df['yahoo_pos'] = df['player_name'].map(yahoo_positions).fillna('')
+        
+        # Classify as Pitcher if either MLB position_type is Pitcher OR Yahoo position contains SP/RP/P
+        df['player_type'] = df.apply(
+            lambda row: 'Pitcher' if (
+                row['position_type'] == 'Pitcher' or 
+                any(p in str(row['yahoo_pos']) for p in ['SP', 'RP', ',P'])
+            ) else 'Hitter',
+            axis=1
         )
+        
         # Fill NaN with Hitter (assume hitter if unknown)
         df['player_type'].fillna('Hitter', inplace=True)
         # Clean up position column and abbreviate with Yahoo position for SP/RP distinction
         df['position'].fillna('Unknown', inplace=True)
-        df['yahoo_pos'] = df['player_name'].map(yahoo_positions).fillna('')
         df['position'] = df.apply(lambda row: abbreviate_position(row['position'], row['player_name'], row['yahoo_pos']), axis=1)
         # Add player_key for Yahoo links
         df['player_key'] = df['player_name'].map(yahoo_player_keys).fillna('')
