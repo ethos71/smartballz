@@ -131,14 +131,39 @@ class DailySitStartManager:
             return True
     
     def step2_run_all_factor_analyses(self) -> bool:
-        """Step 2: Run all 20 factor analyses"""
+        """Step 2: Run all 20 factor analyses (for both all players and roster)"""
         self.print_header("STEP 2: Run All Factor Analyses (20 Factors)")
         
         # Run the consolidated FA runner script with target date
         script_path = self.project_root / "src" / "scripts" / "run_all_fa.py"
         target_date_str = self.target_date.strftime("%Y-%m-%d")
         
-        print(f"\n▶ Running All 20 Factor Analyses...")
+        # First run: All players (for waiver wire)
+        print(f"\n▶ Running analyses for ALL MLB players (for waiver wire)...")
+        
+        try:
+            result = subprocess.run(
+                [sys.executable, str(script_path), "--date", target_date_str, "--all-players"],
+                cwd=str(self.project_root),
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            
+            if result.returncode == 0:
+                print(f"  ✓ All-players analysis completed")
+                all_players_success = True
+            else:
+                print(f"  ⚠️  All-players analysis had issues (continuing)")
+                print(f"     Error: {result.stderr[:200]}")
+                all_players_success = False
+                
+        except Exception as e:
+            print(f"  ✗ Error running all-players analysis: {e}")
+            all_players_success = False
+        
+        # Second run: Rostered players only (for sit/start)
+        print(f"\n▶ Running analyses for ROSTERED players (for sit/start)...")
         
         try:
             result = subprocess.run(
@@ -150,16 +175,19 @@ class DailySitStartManager:
             )
             
             if result.returncode == 0:
-                print(f"  ✓ Running All 20 Factor Analyses completed")
-                return True
+                print(f"  ✓ Roster analysis completed")
+                roster_success = True
             else:
-                print(f"  ⚠️  Running All 20 Factor Analyses had issues (continuing)")
+                print(f"  ⚠️  Roster analysis had issues (continuing)")
                 print(f"     Error: {result.stderr[:200]}")
-                return False
+                roster_success = False
                 
         except Exception as e:
-            print(f"  ✗ Error running Running All 20 Factor Analyses: {e}")
-            return False
+            print(f"  ✗ Error running roster analysis: {e}")
+            roster_success = False
+        
+        # Success if at least roster analysis completed
+        return roster_success
     
     def step3_tune_weights(self) -> bool:
         """Step 3: Tune weights for roster players"""
@@ -527,39 +555,59 @@ class DailySitStartManager:
         
         try:
             # Load schedule
-            schedule_file = self._get_latest_file('schedule_2025.csv')
-            if not schedule_file:
+            schedule_file = self.data_dir / "mlb_2025_schedule.csv"
+            if not schedule_file.exists():
                 print("  ⚠️  No schedule file found, skipping waiver analysis")
                 return
             
             schedule_df = pd.read_csv(schedule_file)
-            schedule_df['game_date'] = pd.to_datetime(schedule_df['game_date'])
+            if 'game_date' in schedule_df.columns:
+                schedule_df['game_date'] = pd.to_datetime(schedule_df['game_date'])
             
             # Load roster
-            roster_file = self._get_latest_file('yahoo_roster_*.csv')
-            if not roster_file:
+            roster_files = sorted(self.data_dir.glob("yahoo_fantasy_rosters_*.csv"),
+                                 key=lambda x: x.stat().st_mtime, reverse=True)
+            if not roster_files:
                 print("  ⚠️  No roster file found, skipping waiver analysis")
                 return
             
-            roster_df = pd.read_csv(roster_file)
-            
-            # For now, use a sample of available players
-            # TODO: Integrate with Yahoo API to get actual free agents
-            # For demonstration, we'll analyze all players and filter
-            
-            # Load all FA outputs to create sample FA pool
-            _ = []
-            
-            # Try to load some FA outputs (this is a placeholder)
-            # In production, this would come from Yahoo's available players list
-            print("  💡 Note: Free agent pool integration pending")
-            print("  💡 Analyzing based on current data...")
+            roster_df = pd.read_csv(roster_files[0])
+            rostered_players = roster_df['player_name'].tolist() if 'player_name' in roster_df.columns else roster_df['name'].tolist() if 'name' in roster_df.columns else []
             
             # Initialize waiver analyzer
             waiver_analyzer = WaiverWireAnalyzer(self.data_dir)
             
-            # Generate waiver report
-            # For now, just analyze drop candidates from roster
+            # Load free agents (all players minus rostered)
+            print(f"\n  Loading all-player analysis results...")
+            fa_scores_df = waiver_analyzer.load_free_agents(rostered_players)
+            
+            if fa_scores_df.empty:
+                print("  ⚠️  No all-player analysis found!")
+                print("  💡 Run: python src/scripts/run_all_fa.py --all-players")
+                print("\n  Showing drop candidates from current roster only...\n")
+            else:
+                print(f"  ✓ Loaded {len(fa_scores_df)} free agents")
+                
+                # Find best waiver pickups
+                print("\n" + "=" * 80)
+                print("TOP WAIVER WIRE RECOMMENDATIONS")
+                print("=" * 80)
+                
+                top_pickups = waiver_analyzer.find_best_waiver_pickups(
+                    roster_df, schedule_df, fa_scores_df, recommendations, top_n=10
+                )
+                
+                if len(top_pickups) > 0:
+                    print(f"\n{'Player':<20} {'Team':>5} {'Score':>6} {'Games':>6} {'Coors':>6} {'Reason':<40}")
+                    print("-" * 95)
+                    
+                    for _, row in top_pickups.iterrows():
+                        print(f"{row['player_name']:<20} {row['team']:>5} {row['waiver_score']:>6.1f} "
+                              f"{row['upcoming_games']:>6} {row['coors_games']:>6} {row['reasons']:<40}")
+                else:
+                    print("  No strong waiver candidates found")
+            
+            # Generate drop candidate analysis
             print("\n" + "=" * 80)
             print("ROSTER ANALYSIS - Drop Candidates")
             print("=" * 80)
@@ -583,7 +631,6 @@ class DailySitStartManager:
                         print(f"{row['player_name']:<25} {row['avg_score']:>10.2f} {row['drop_priority']:<30}")
                     
                     print("\n💡 Consider these players for streaming/replacement")
-                    print("💡 Look for free agents with upcoming Coors games, favorable matchups")
                 else:
                     print("\n✅ No clear drop candidates - all players have acceptable matchups")
             

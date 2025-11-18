@@ -33,6 +33,8 @@ from scripts.streamlit_components.player_weight_breakdown import render_player_w
 from scripts.streamlit_components.factor_analysis import render_factor_analysis
 from scripts.streamlit_components.full_rankings import render_full_rankings
 from scripts.streamlit_components.waiver_wire_section import render_waiver_wire
+from scripts.streamlit_components.opponent_analysis_section import render_opponent_analysis
+from scripts.opponent_analysis import analyze_opponent_roster
 
 # Page config
 st.set_page_config(
@@ -173,8 +175,94 @@ if roster_data is not None and 'fantasy_team' in roster_data.columns:
             st.rerun()
     
     # Waiver Wire Button - full width under other buttons
-    if st.sidebar.button("🔍 Waiver Wire", help="Analyze top free agents", use_container_width=True, key="btn_waiver"):
-        st.sidebar.info("Running waiver wire analysis...")
+    # Check for ongoing all-player analysis
+    def check_all_player_analysis_progress():
+        """Check if all-player analysis is running and return progress"""
+        import subprocess as sp
+        
+        # Check if process is running
+        try:
+            result = sp.run(['pgrep', '-f', 'run_all_fa.py --all-players'], 
+                          capture_output=True, text=True)
+            if result.returncode != 0:
+                return None  # Not running
+            
+            # Count completed files
+            all_player_files = sorted(glob.glob('data/*all_players_2025*.csv'))
+            # Exclude the source data file
+            all_player_files = [f for f in all_player_files if 'mlb_all_players' not in f]
+            completed = len(all_player_files)
+            
+            # Try to get current step from log
+            try:
+                with open('/tmp/all_players_run_fixed.log', 'r') as f:
+                    lines = f.readlines()
+                    for line in reversed(lines[-50:]):
+                        if '/20' in line and line.strip().startswith(tuple('0123456789')):
+                            current_step = line.strip()
+                            break
+                    else:
+                        current_step = "Processing..."
+            except:
+                current_step = "Processing..."
+            
+            return {
+                'completed': completed,
+                'total': 20,
+                'current_step': current_step
+            }
+        except:
+            return None
+    
+    progress = check_all_player_analysis_progress()
+    
+    if progress:
+        # Analysis is running - show progress
+        progress_pct = progress['completed'] / progress['total']
+        st.sidebar.info(f"⏳ All-Player Analysis Running")
+        st.sidebar.progress(progress_pct, text=f"{progress['completed']}/20 factors complete")
+        st.sidebar.caption(f"📊 {progress['current_step']}")
+        
+        if st.sidebar.button("🔍 Waiver Wire (Analysis in Progress)", 
+                           help="All-player analysis must complete first", 
+                           use_container_width=True, 
+                           key="btn_waiver",
+                           disabled=True):
+            pass
+    else:
+        # Check if analysis has been run
+        all_player_files = sorted(glob.glob('data/*all_players_2025*.csv'))
+        all_player_files = [f for f in all_player_files if 'mlb_all_players' not in f]
+        
+        if len(all_player_files) >= 20:
+            # Analysis complete - show status
+            st.sidebar.success(f"✅ All-Player Analysis Complete ({len(all_player_files)} factors)")
+            button_text = "🔍 Waiver Wire"
+        else:
+            # Not run yet
+            st.sidebar.warning(f"⚠️ Run all-player analysis first ({len(all_player_files)}/20 factors)")
+            button_text = "🔍 Waiver Wire (Need Analysis)"
+        
+        if st.sidebar.button(button_text, help="Analyze top free agents", use_container_width=True, key="btn_waiver"):
+            st.sidebar.info("Running waiver wire analysis...")
+
+    
+    # Opponent Analysis Button
+    if st.sidebar.button("🎯 Analyze Opponent", help="Run 20-factor analysis on your weekly matchup opponent", use_container_width=True, key="btn_opponent"):
+        with st.spinner(f"Analyzing opponent roster for {selected_team}..."):
+            # Extract league_id and team_key from selected team if needed
+            # For now, we'll use session state to store the result
+            opponent_df = analyze_opponent_roster(
+                league_id=st.session_state.get('league_id', ''),
+                my_team_key=st.session_state.get('team_key', selected_team)
+            )
+            if opponent_df is not None:
+                st.session_state['opponent_analysis'] = opponent_df
+                st.session_state['opponent_name'] = opponent_df['opponent_team'].iloc[0] if len(opponent_df) > 0 else "Unknown"
+                st.success(f"✅ Opponent analysis complete! Analyzed {len(opponent_df)} players")
+                st.rerun()
+            else:
+                st.error("❌ Failed to analyze opponent roster")
     
     # Check if daily waiver wire analysis needs to run
     check_and_run_daily_waiver()
@@ -258,7 +346,14 @@ render_full_rankings(df_summary)
 # SECTION 7: Waiver Wire
 render_waiver_wire()
 
-# SECTION 8: Factor Analysis Legend
+# SECTION 8: Opponent Analysis (if available)
+if 'opponent_analysis' in st.session_state and st.session_state['opponent_analysis'] is not None:
+    render_opponent_analysis(
+        st.session_state['opponent_analysis'],
+        st.session_state.get('opponent_name', 'Opponent Team')
+    )
+
+# SECTION 9: Factor Analysis Legend
 st.markdown("---")
 st.markdown("## 📖 Factor Analysis Legend")
 st.markdown("---")
