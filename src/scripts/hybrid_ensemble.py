@@ -95,16 +95,16 @@ class HybridEnsemblePredictor:
         # Use available score columns
         features = player_data[score_cols].copy()
         
-        # Add interaction features
-        features['park_platoon'] = player_data['park_factors_score'] * player_data['platoon_score']
-        features['matchup_recent'] = player_data['matchup_score'] * player_data['recent_form_score']
-        features['vegas_park'] = player_data['vegas_odds_score'] * player_data['park_factors_score']
+        # Add interaction features (only if base columns exist)
+        if 'park_factors_score' in player_data.columns and 'platoon_score' in player_data.columns:
+            features['park_platoon'] = player_data['park_factors_score'] * player_data['platoon_score']
+        if 'matchup_score' in player_data.columns and 'recent_form_score' in player_data.columns:
+            features['matchup_recent'] = player_data['matchup_score'] * player_data['recent_form_score']
+        if 'vegas_odds_score' in player_data.columns and 'park_factors_score' in player_data.columns:
+            features['vegas_park'] = player_data['vegas_odds_score'] * player_data['park_factors_score']
         
-        # Add categorical features for CatBoost
-        if 'team' in player_data.columns:
-            features['team'] = player_data['team'].astype('category')
-        if 'position' in player_data.columns:
-            features['position'] = player_data['position'].astype('category')
+        # Note: Do NOT add categorical features here - they cause mismatch errors
+        # The model was trained without categorical features (team, position)
         
         feature_names = features.columns.tolist()
         return features, feature_names
@@ -163,15 +163,13 @@ class HybridEnsemblePredictor:
             print("❌ CatBoost not available")
             return None
         
-        # Identify categorical features by column name (not index)
-        cat_feature_names = [col for col in X_train.columns 
-                           if X_train[col].dtype.name == 'category']
+        # Don't use categorical features - they cause mismatch issues during prediction
+        # CatBoost works fine with numeric features only
         
         model = cb.CatBoostRegressor(
             iterations=1000,
             learning_rate=0.05,
             depth=6,
-            cat_features=cat_feature_names,  # Use column names
             verbose=False
         )
         
