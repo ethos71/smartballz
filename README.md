@@ -4,6 +4,14 @@ An automated machine learning system for fantasy baseball optimization that comb
 
 ---
 
+## 🎥 Dashboard Demo
+
+![Dashboard Demo](docs/screenshots/dashboard-demo.gif)
+
+*Interactive Streamlit dashboard with real-time sit/start recommendations, waiver wire analysis, and 20+ factor analyses. [See full dashboard documentation →](docs/DASHBOARD_DEMO.md)*
+
+---
+
 ## 🚀 The Simplest Way to Get Sit/Start Recommendations
 
 ### Step 1: Initial Setup (First Time Only)
