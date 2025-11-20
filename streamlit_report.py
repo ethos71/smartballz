@@ -34,7 +34,7 @@ from scripts.streamlit_components.factor_analysis import render_factor_analysis
 from scripts.streamlit_components.full_rankings import render_full_rankings
 from scripts.streamlit_components.waiver_wire_section import render_waiver_wire
 from scripts.streamlit_components.opponent_analysis_section import render_opponent_analysis
-from scripts.opponent_analysis import analyze_opponent_roster
+from scripts.waiver.opponent_analysis import analyze_opponent_roster
 
 # Page config
 st.set_page_config(
