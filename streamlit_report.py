@@ -34,6 +34,11 @@ from scripts.streamlit_components.factor_analysis import render_factor_analysis
 from scripts.streamlit_components.full_rankings import render_full_rankings
 from scripts.streamlit_components.waiver_wire_section import render_waiver_wire
 from scripts.streamlit_components.opponent_analysis_section import render_opponent_analysis
+from scripts.streamlit_components.ensemble_predictions import (
+    load_ensemble_predictions, 
+    render_ensemble_comparison,
+    add_ensemble_to_recommendations
+)
 from scripts.waiver.opponent_analysis import analyze_opponent_roster
 
 # Page config
@@ -287,6 +292,12 @@ if 'df_summary' not in st.session_state:
 
 df_summary = st.session_state.df_summary
 
+# Add ensemble predictions if models are available
+try:
+    df_summary = load_ensemble_predictions(df_summary)
+except Exception as e:
+    st.sidebar.warning(f"⚠️ Ensemble unavailable")
+
 # SECTION 1: Summary Metrics
 render_summary_metrics(df_summary)
 
@@ -342,6 +353,10 @@ render_factor_analysis(df_summary)
 
 # SECTION 6: Full Player Rankings
 render_full_rankings(df_summary)
+
+# SECTION 6.5: Ensemble Predictions (if available)
+if 'pred_ensemble' in df_summary.columns:
+    render_ensemble_comparison(df_summary)
 
 # SECTION 7: Waiver Wire
 render_waiver_wire()
