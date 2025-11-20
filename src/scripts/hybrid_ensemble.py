@@ -163,15 +163,15 @@ class HybridEnsemblePredictor:
             print("❌ CatBoost not available")
             return None
         
-        # Identify categorical features
-        cat_features = [i for i, col in enumerate(X_train.columns) 
-                       if X_train[col].dtype.name == 'category']
+        # Identify categorical features by column name (not index)
+        cat_feature_names = [col for col in X_train.columns 
+                           if X_train[col].dtype.name == 'category']
         
         model = cb.CatBoostRegressor(
             iterations=1000,
             learning_rate=0.05,
             depth=6,
-            cat_features=cat_features,
+            cat_features=cat_feature_names,  # Use column names
             verbose=False
         )
         
