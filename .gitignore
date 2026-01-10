@@ -3,6 +3,8 @@
 .env
 
 # Yahoo OAuth tokens
+data/auth/oauth2.json
+data/auth/oauth2.json.bak
 oauth2.json
 oauth2.json.bak
 
@@ -25,6 +27,9 @@ data/
 # Backup files
 *.bak
 *_OLD.md
+
+# Logs folder
+logs/
 
 # Log files
 *.log
