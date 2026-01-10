@@ -16,9 +16,12 @@ ALWAYS FETCHES LATEST ROSTER FROM YAHOO:
 
 CODE ORGANIZATION:
   • All new Python scripts must go in src/scripts/
-  • Streamlit components must go in src/scripts/streamlit_components/
+  • Streamlit components must go in src/reports/streamlit_components/
+  • Streamlit reports must go in src/reports/
   • Factor analysis modules must go in src/scripts/fa/
   • Data scraping scripts must go in src/scripts/scrape/
+  • Model files must go in src/models/ (catboost, xgboost, ensemble, hybrid-dc)
+  • Archived/deprecated code must go in docs/robots/archive/
 
 Usage:
     fb-ai                    # Run analysis for today (auto-detects mode)

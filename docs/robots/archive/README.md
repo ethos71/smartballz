@@ -1,6 +1,19 @@
 # Archive
 
-This folder contains old versions of files preserved for reference.
+This folder contains old versions of files, deprecated code, and historical documentation preserved for reference.
+
+## Purpose
+
+All archived and deprecated code should be moved here to keep the main codebase clean while preserving historical context.
+
+## Organization Rules
+
+When archiving files:
+1. Include the original filename
+2. Update this README with archive details
+3. Note the date archived
+4. Document why it was archived
+5. Reference any replacement code/files
 
 ## Contents
 
