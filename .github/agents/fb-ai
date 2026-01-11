@@ -23,6 +23,13 @@ CODE ORGANIZATION:
   • Model files must go in src/models/ (catboost, xgboost, ensemble, hybrid-dc)
   • Archived/deprecated code must go in docs/robots/archive/
 
+TESTING REQUIREMENTS:
+  • Before claiming Streamlit dashboards are "ready", ALWAYS run:
+    python test/test_dashboards.py
+  • Verify ALL tests pass before telling user dashboards are accessible
+  • If tests fail, fix issues first, then re-test
+  • Only claim "ready" after confirming test suite passes
+
 Usage:
     fb-ai                    # Run analysis for today (auto-detects mode)
     fb-ai --date 2025-09-29  # Run for specific date

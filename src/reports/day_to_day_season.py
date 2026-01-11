@@ -19,22 +19,22 @@ import time
 sys.path.insert(0, 'src')
 
 # Import components
-from scripts.streamlit_components.config import setup_page_config, apply_custom_css
-from scripts.streamlit_components.data_loaders import (
+from reports.streamlit_components.config import setup_page_config, apply_custom_css
+from reports.streamlit_components.data_loaders import (
     load_roster_file, 
     load_recommendations,
     get_available_teams,
     load_recommendations_data
 )
-from scripts.streamlit_components.summary_metrics import render_summary_metrics
-from scripts.streamlit_components.current_roster_performance import render_current_roster_performance
-from scripts.streamlit_components.top_starts_sits import render_top_starts_sits
-from scripts.streamlit_components.player_weight_breakdown import render_player_weight_breakdown
-from scripts.streamlit_components.factor_analysis import render_factor_analysis
-from scripts.streamlit_components.full_rankings import render_full_rankings
-from scripts.streamlit_components.waiver_wire_section import render_waiver_wire
-from scripts.streamlit_components.opponent_analysis_section import render_opponent_analysis
-from scripts.streamlit_components.ensemble_predictions import (
+from reports.streamlit_components.summary_metrics import render_summary_metrics
+from reports.streamlit_components.current_roster_performance import render_current_roster_performance
+from reports.streamlit_components.top_starts_sits import render_top_starts_sits
+from reports.streamlit_components.player_weight_breakdown import render_player_weight_breakdown
+from reports.streamlit_components.factor_analysis import render_factor_analysis
+from reports.streamlit_components.full_rankings import render_full_rankings
+from reports.streamlit_components.waiver_wire_section import render_waiver_wire
+from reports.streamlit_components.opponent_analysis_section import render_opponent_analysis
+from reports.streamlit_components.ensemble_predictions import (
     load_ensemble_predictions, 
     render_ensemble_comparison,
     add_ensemble_to_recommendations
