@@ -38,7 +38,7 @@ class WeightConfig:
             if 'src' in current_file.parts:
                 # Navigate up to project root
                 project_root = current_file
-                while project_root.name != 'fantasy-baseball-ai' and project_root.parent != project_root:
+                while project_root.name != 'smartballz' and project_root.parent != project_root:
                     project_root = project_root.parent
             else:
                 project_root = Path.cwd()

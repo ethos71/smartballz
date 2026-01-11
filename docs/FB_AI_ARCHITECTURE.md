@@ -1,8 +1,8 @@
-# Fantasy Baseball AI - System Architecture
+# SmartBallz - System Architecture
 
 ## Overview
 
-Fantasy Baseball AI is a comprehensive sit/start recommendation system that analyzes 20+ factors to provide data-driven lineup decisions. The system combines machine learning, statistical analysis, and real-time data from multiple sources.
+SmartBallz is a comprehensive sit/start recommendation system that analyzes 20+ factors to provide data-driven lineup decisions. The system combines machine learning, statistical analysis, and real-time data from multiple sources.
 
 ## High-Level Architecture
 

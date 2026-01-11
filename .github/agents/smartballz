@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-fb-ai - Fantasy Baseball AI Quick Command
+smartballz - Smart Fantasy Baseball AI
 
-A simple command to run sit/start analysis 30 minutes before game time.
+A smart command to run sit/start analysis 30 minutes before game time.
 This is a shortcut wrapper around daily_sitstart.py with smart defaults.
 
 ALWAYS FETCHES LATEST ROSTER FROM YAHOO:
   • Every run automatically pulls your current roster from Yahoo Fantasy
-  • Uses OAuth credentials from oauth2.json
+  • Uses OAuth credentials from data/auth/oauth2.json
   • Fetches rosters for both your leagues:
     - "I Like BIG Bunts" (Monster Island)
     - "Pure Uncut Adam West" (Gotham City Baseball)
@@ -31,10 +31,10 @@ TESTING REQUIREMENTS:
   • Only claim "ready" after confirming test suite passes
 
 Usage:
-    fb-ai                    # Run analysis for today (auto-detects mode)
-    fb-ai --date 2025-09-29  # Run for specific date
-    fb-ai --full             # Force full analysis with weight tuning
-    fb-ai --quick            # Force quick mode (skip weight tuning)
+    smartballz                    # Run analysis for today (auto-detects mode)
+    smartballz --date 2025-09-29  # Run for specific date
+    smartballz --full             # Force full analysis with weight tuning
+    smartballz --quick            # Force quick mode (skip weight tuning)
     fb-ai --when             # Show when to run (game times)
     fb-ai --last             # Show last recommendations
     fb-ai --help             # Show help

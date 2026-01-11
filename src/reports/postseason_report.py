@@ -420,7 +420,7 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.caption("Postseason Roster Lock Dashboard | fb-ai - Fantasy Baseball AI")
+    st.caption("Postseason Roster Lock Dashboard | smartballz - SmartBallz")
 
 
 if __name__ == "__main__":

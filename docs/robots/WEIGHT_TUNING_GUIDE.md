@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Fantasy Baseball AI Weight Tuning System uses **3+ years of historical game data** (2022-present) to optimize factor analysis weights for each player on your roster. This improves prediction accuracy by personalizing recommendations based on each player's unique performance patterns.
+The SmartBallz Weight Tuning System uses **3+ years of historical game data** (2022-present) to optimize factor analysis weights for each player on your roster. This improves prediction accuracy by personalizing recommendations based on each player's unique performance patterns.
 
 ## Why Use Weight Tuning?
 
@@ -354,7 +354,7 @@ For more details:
 
 ## Summary
 
-The weight tuning system makes your Fantasy Baseball AI smarter by learning from **3+ years of historical data** to find optimal factor weights for each player. This personalization can improve prediction accuracy by **20-40%**, giving you a competitive edge in your fantasy league!
+The weight tuning system makes your SmartBallz smarter by learning from **3+ years of historical data** to find optimal factor weights for each player. This personalization can improve prediction accuracy by **20-40%**, giving you a competitive edge in your fantasy league!
 
 **Three simple steps:**
 1. Get historical data: `python src/fb_ai.py --refresh`

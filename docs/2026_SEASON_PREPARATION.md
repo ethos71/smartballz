@@ -285,29 +285,29 @@ This generates:
 
 ### **Enhance Existing System:**
 
-The current fb-ai system focuses on **in-season sit/start decisions**. We should add:
+The current smartballz system focuses on **in-season sit/start decisions**. We should add:
 
 1. **Pre-Season Mode**
    ```bash
-   fb-ai --draft-prep
+   smartballz --draft-prep
    # Generates draft rankings, cheat sheets, sleepers
    ```
 
 2. **Mock Draft Simulator**
    ```bash
-   fb-ai --mock-draft
+   smartballz --mock-draft
    # Simulates draft scenarios with AI recommendations
    ```
 
 3. **Spring Training Monitor**
    ```bash
-   fb-ai --spring-watch
+   smartballz --spring-watch
    # Tracks camp news, injuries, roster battles
    ```
 
 4. **Weekly Updates**
    ```bash
-   fb-ai --preseason-update
+   smartballz --preseason-update
    # Updates rankings based on latest news
    ```
 

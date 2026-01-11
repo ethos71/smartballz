@@ -27,8 +27,8 @@ def render_rerun_button():
         output_expander = st.sidebar.expander("📋 Progress Log", expanded=True)
         
         process = subprocess.Popen(
-            ["./fb-ai", "--date", "2025-09-28", "--quick"],
-            cwd="/home/dominick/workspace/fantasy-baseball-ai",
+            ["./smartballz", "--date", "2025-09-28", "--quick"],
+            cwd="/home/dominick/workspace/smartballz",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -86,7 +86,7 @@ def render_waiver_button():
         
         process = subprocess.Popen(
             ["python3", "src/scripts/daily_sitstart.py", "--date", "2025-09-28", "--skip-tune"],
-            cwd="/home/dominick/workspace/fantasy-baseball-ai",
+            cwd="/home/dominick/workspace/smartballz",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -136,7 +136,7 @@ def render_refresh_button():
         
         process = subprocess.Popen(
             ["python3", "src/scripts/scrape/yahoo_scrape.py"],
-            cwd="/home/dominick/workspace/fantasy-baseball-ai",
+            cwd="/home/dominick/workspace/smartballz",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -195,7 +195,7 @@ def render_calibrate_button():
         
         process = subprocess.Popen(
             ["python3", "src/scripts/daily_sitstart.py", "--date", "2025-09-28", "--tune-only"],
-            cwd="/home/dominick/workspace/fantasy-baseball-ai",
+            cwd="/home/dominick/workspace/smartballz",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

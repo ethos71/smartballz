@@ -2,13 +2,13 @@
 
 ## Overview
 
-The `fb-ai` command now **automatically fetches your latest roster from Yahoo Fantasy** every time it runs! This ensures your sit/start analysis always uses your current roster composition.
+The `smartballz` command now **automatically fetches your latest roster from Yahoo Fantasy** every time it runs! This ensures your sit/start analysis always uses your current roster composition.
 
 ## How It Works
 
 ### Automatic Workflow
 
-Every time you run `fb-ai`, the system:
+Every time you run `smartballz`, the system:
 
 1. **Connects to Yahoo Fantasy API** using OAuth credentials from `oauth2.json`
 2. **Fetches your current MLB teams** from all leagues you're in
@@ -59,14 +59,14 @@ data/yahoo_fantasy_rosters_20251112_181604.csv
 ### Daily Workflow
 
 ```bash
-# Simply run fb-ai - roster fetch is automatic!
-fb-ai
+# Simply run smartballz - roster fetch is automatic!
+smartballz
 
 # Or for a specific date
-fb-ai --date 2025-09-28
+smartballz --date 2025-09-28
 
 # Quick mode (skip weight tuning)
-fb-ai --quick
+smartballz --quick
 ```
 
 ### What Happens
@@ -155,7 +155,7 @@ If you see "Token expired":
 ```bash
 # The system auto-refreshes, but if it fails:
 rm oauth2.json
-# Then re-authenticate by running fb-ai
+# Then re-authenticate by running smartballz
 ```
 
 ### No Teams Found
@@ -254,7 +254,7 @@ ls -lht data/yahoo_fantasy_rosters_*.csv
 
 ## Summary
 
-The `fb-ai` command now provides a **fully automated** workflow:
+The `smartballz` command now provides a **fully automated** workflow:
 
 1. ✅ **Fetches your latest roster** from Yahoo
 2. ✅ **Updates MLB data** (games, stats, weather)
@@ -262,7 +262,7 @@ The `fb-ai` command now provides a **fully automated** workflow:
 4. ✅ **Generates personalized recommendations**
 5. ✅ **Saves historical snapshots**
 
-Just run `fb-ai` and everything happens automatically!
+Just run `smartballz` and everything happens automatically!
 
 ---
 

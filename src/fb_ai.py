@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fantasy Baseball AI - Main Utility Script
+SmartBallz - Main Utility Script
 
 Usage:
     python src/fb_ai.py                    # Show data statistics and available commands
@@ -20,7 +20,7 @@ from pathlib import Path
 
 
 class DataRefreshManager:
-    """Manages complete data refresh for Fantasy Baseball AI"""
+    """Manages complete data refresh for SmartBallz"""
     
     def __init__(self):
         self.project_root = Path(__file__).parent.parent
@@ -380,7 +380,7 @@ class DataRefreshManager:
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(
-        description='Fantasy Baseball AI - Main Utility',
+        description='SmartBallz - Main Utility',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

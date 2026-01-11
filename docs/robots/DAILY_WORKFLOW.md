@@ -2,7 +2,7 @@
 
 ## What Was Built
 
-This implementation completes the repeatable daily workflow for Fantasy Baseball AI sit/start decisions.
+This implementation completes the repeatable daily workflow for SmartBallz sit/start decisions.
 
 ### New Scripts Created
 
@@ -82,7 +82,7 @@ python src/scripts/schedule_helper.py --cron
 
 # Add to crontab for daily 7:00 AM runs
 # crontab -e
-# 0 7 * * * cd /home/dominick/workspace/fantasy-baseball-ai && python src/scripts/daily_sitstart.py
+# 0 7 * * * cd /home/dominick/workspace/smartballz && python src/scripts/daily_sitstart.py
 ```
 
 ## Output Format

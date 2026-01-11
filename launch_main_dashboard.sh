@@ -1,7 +1,7 @@
 #!/bin/bash
-# Launch the Main Fantasy Baseball AI Dashboard Hub
+# Launch the Main SmartBallz Dashboard Hub
 
-echo "⚾ Starting Fantasy Baseball AI Dashboard Hub..."
+echo "⚾ Starting SmartBallz Dashboard Hub..."
 echo "=================================================="
 echo ""
 

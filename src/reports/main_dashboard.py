@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fantasy Baseball AI - Main Dashboard Hub
+SmartBallz - Main Dashboard Hub
 
 Central dashboard that provides navigation between:
 - Draft Preparation Dashboard (pre-season)
@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Page configuration
 st.set_page_config(
-    page_title="Fantasy Baseball AI Dashboard",
+    page_title="SmartBallz Dashboard",
     page_icon="⚾",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -86,7 +86,7 @@ def main():
             """)
         
         st.markdown("---")
-        st.caption("fb-ai - Fantasy Baseball AI")
+        st.caption("smartballz - SmartBallz")
     
     # Main content based on selection
     if "Draft" in dashboard_choice:
@@ -118,52 +118,221 @@ def show_draft_dashboard():
     ---
     """)
     
-    # Load and display draft dashboard components
+    # Load and display FULL draft dashboard
     try:
         from reports.draft_dashboard import load_draft_data
         
         draft_data = load_draft_data()
         
-        if draft_data:
-            # Quick stats at top
-            col1, col2, col3, col4 = st.columns(4)
+        if not draft_data:
+            st.warning("⚠️ No draft data found. Generate rankings first!")
+            if st.button("Generate Draft Rankings", type="primary"):
+                st.info("Run: `python src/reports/draft_preparation_report.py`")
+            return
+        
+        # Show full dashboard with all tabs
+        st.markdown("---")
+        
+        # Create all tabs
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+            "🌟 Value Picks",
+            "🚀 Rookies & Prospects",
+            "💎 Sleepers",
+            "⚠️ Injury Risks",
+            "💰 Auction Values",
+            "📋 Draft Strategy",
+            "🔒 Keeper Analysis",
+            "🎯 By Position"
+        ])
+        
+        # TAB 1: Value Picks
+        with tab1:
+            st.header("🌟 Top Value Picks")
+            st.markdown("Players being drafted lower than their projected value")
+            
+            value_picks = draft_data['value_picks']
+            
+            if value_picks:
+                for pick in value_picks:
+                    col1, col2, col3 = st.columns([3, 1, 2])
+                    
+                    with col1:
+                        st.subheader(f"{pick['player']}")
+                        st.caption(f"{pick['position']} | {pick['team']}")
+                    
+                    with col2:
+                        st.metric("ADP", pick['adp'])
+                        st.metric("Should Be", pick['projected_rank'], 
+                                 delta=f"-{pick['value_gap']} rounds",
+                                 delta_color="inverse")
+                    
+                    with col3:
+                        st.info(f"**Why:** {pick['reason']}")
+                    
+                    st.markdown("---")
+        
+        # TAB 2: Rookies & Prospects
+        with tab2:
+            st.header("🚀 Rookies & Prospects")
+            
+            rookies = draft_data['rookies_and_prospects']
+            
+            st.subheader("🌟 Ready for Opening Day")
+            for player in rookies['ready_now']:
+                with st.expander(f"**{player['player']}** - {player['position']}, {player['team']} (Age {player['age']})"):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**ETA:** {player['eta']}")
+                        st.write(f"**Draft Round:** {player['draft_round']}")
+                        st.write(f"**Impact:** {player['projected_impact']}")
+                    with col2:
+                        st.write(f"**Tools:** {player['tools']}")
+                        st.info(player['notes'])
+        
+        # TAB 3: Sleepers
+        with tab3:
+            st.header("💎 Sleeper Picks")
+            
+            for sleeper in draft_data['sleepers']:
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    st.subheader(f"{sleeper['player']}")
+                    st.caption(f"{sleeper['position']} | {sleeper['team']}")
+                    st.write(f"**Upside:** {sleeper['upside']}")
+                    st.success(sleeper['reason'])
+                    if 'risk' in sleeper:
+                        st.warning(f"⚠️ {sleeper['risk']}")
+                with col2:
+                    st.metric("ADP", sleeper['adp'])
+                    st.metric("Target Round", sleeper['target_round'])
+                st.markdown("---")
+        
+        # TAB 4: Injury Risks
+        with tab4:
+            st.header("⚠️ Injury Risks")
+            
+            for risk in draft_data['injury_risks']:
+                if risk['risk_level'] == 'EXTREME':
+                    container = st.error
+                elif risk['risk_level'] == 'HIGH':
+                    container = st.warning
+                else:
+                    container = st.info
+                
+                with container(f"**{risk['player']}** - {risk['position']} (ADP {risk['adp']})"):
+                    st.write(f"**Risk Level:** {risk['risk_level']}")
+                    st.write(f"**History:** {risk['injury_history']}")
+                    st.write(f"**Recommendation:** {risk['recommendation']}")
+                st.markdown("---")
+        
+        # TAB 5: Auction Values
+        with tab5:
+            st.header("💰 Auction Draft Values")
+            
+            auction = draft_data['auction_values']
+            col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.metric("Value Picks", len(draft_data.get('value_picks', [])))
+                st.subheader("🌟 Tier 1 Studs")
+                for player in auction['tier_1']:
+                    st.metric(f"{player['player']} ({player['position']})", f"${player['value']}")
+            
             with col2:
-                rookies = draft_data.get('rookies_and_prospects', {}).get('ready_now', [])
-                st.metric("Top Rookies", len(rookies))
+                st.subheader("⭐ Tier 2 Stars")
+                for player in auction['tier_2']:
+                    st.metric(f"{player['player']} ({player['position']})", f"${player['value']}")
+            
             with col3:
-                st.metric("Sleepers", len(draft_data.get('sleepers', [])))
-            with col4:
-                st.metric("Injury Risks", len(draft_data.get('injury_risks', [])))
+                st.subheader("💎 Bargain Targets")
+                for player in auction['bargain_targets']:
+                    st.metric(player['player'], f"${player['value']}", 
+                             delta=f"Fair: ${player['fair_value']}", delta_color="off")
+        
+        # TAB 6: Draft Strategy  
+        with tab6:
+            st.header("📋 Draft Strategy")
+            
+            strategy = draft_data['draft_strategy']
+            
+            st.subheader("🏆 Early Rounds (1-3)")
+            st.write(f"**Strategy:** {strategy['early_rounds']['strategy']}")
+            st.write(f"**Positions:** {', '.join(strategy['early_rounds']['positions_to_target'])}")
+            st.info(strategy['early_rounds']['notes'])
             
             st.markdown("---")
             
-            # Quick action button
-            st.info("💡 **Tip:** Use the full Draft Dashboard for complete analysis with all tabs and features!")
+            st.subheader("⚡ Middle Rounds (4-10)")
+            st.write(f"**Strategy:** {strategy['middle_rounds']['strategy']}")
+            st.write(f"**Positions:** {', '.join(strategy['middle_rounds']['positions_to_target'])}")
+            st.info(strategy['middle_rounds']['notes'])
             
-            if st.button("🚀 Open Full Draft Dashboard", type="primary", use_container_width=True):
-                st.markdown("""
-                To access the full draft dashboard with all features, run:
-                ```bash
-                ./launch_draft_dashboard.sh
-                ```
-                Or directly:
-                ```bash
-                streamlit run src/reports/draft_dashboard.py
-                ```
-                The full dashboard will open at: http://localhost:8502
-                """)
-        else:
-            st.warning("No draft data found. Generate rankings first!")
+            st.markdown("---")
             
-            if st.button("Generate Draft Rankings"):
-                st.info("Run: `python src/reports/draft_preparation_report.py`")
+            st.subheader("🚀 Late Rounds (11+)")
+            st.write(f"**Strategy:** {strategy['late_rounds']['strategy']}")
+            st.write(f"**Positions:** {', '.join(strategy['late_rounds']['positions_to_target'])}")
+            st.info(strategy['late_rounds']['notes'])
+            
+            st.markdown("---")
+            st.subheader("🔑 Key Principles")
+            for principle in strategy['key_principles']:
+                st.success(f"✅ {principle}")
+        
+        # TAB 7: Keeper Analysis
+        with tab7:
+            if 'keeper_analysis' in draft_data:
+                st.header("🔒 Keeper League Analysis")
+                keeper = draft_data['keeper_analysis']
+                
+                st.subheader("📊 Positional Scarcity")
+                scarcity = keeper['available_targets']['scarcity_analysis']
+                
+                for pos, data in scarcity.items():
+                    level = data['scarcity_level']
+                    color = "🔴" if level == 'EXTREME' else "🟡" if level == 'HIGH' else "🟢"
+                    
+                    with st.expander(f"{color} **{pos}** - {level} Scarcity"):
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.metric("Total Elite", data['total_elite'])
+                            st.metric("Likely Kept", data['likely_kept'])
+                            st.metric("Available", data['available'])
+                        with col2:
+                            st.info(f"**Strategy:** {data['recommendation']}")
+            else:
+                st.info("Keeper analysis not available")
+        
+        # TAB 8: By Position
+        with tab8:
+            if 'positional_recommendations' in draft_data:
+                st.header("🎯 Recommendations by Position")
+                pos_rec = draft_data['positional_recommendations']
+                
+                # First Base - Featured
+                st.subheader("⚾ FIRST BASE - TOP PRIORITY")
+                first_base = pos_rec['1B']
+                
+                st.error(f"**Scarcity:** {first_base['scarcity']}")
+                st.success(f"**Strategy:** {first_base['strategy']}")
+                
+                st.write("### 🌟 Tier 1 - Best Available")
+                for player in first_base['tier_1_available']:
+                    with st.expander(f"**{player['player']}** ({player['team']}) - Rounds {player['target_round']}"):
+                        st.write(f"**Projection:** {player['proj']}")
+                        st.info(f"**Why:** {player['why']}")
+                
+                st.write("### ⭐ Tier 2 - Solid Options")
+                for player in first_base['tier_2_targets']:
+                    with st.expander(f"**{player['player']}** ({player['team']}) - Rounds {player['target_round']}"):
+                        st.write(f"**Projection:** {player['proj']}")
+                        st.info(f"**Why:** {player['why']}")
+            else:
+                st.info("Positional recommendations not available")
                 
     except Exception as e:
-        st.error(f"Error loading draft data: {e}")
-        st.info("Make sure draft_dashboard.py is available in src/reports/")
+        st.error(f"Error loading draft dashboard: {e}")
+        import traceback
+        st.code(traceback.format_exc())
 
 
 def show_season_dashboard():

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fantasy Baseball AI - Streamlit Sit/Start Report
+SmartBallz - Streamlit Sit/Start Report
 Interactive dashboard for sit/start recommendations
 """
 
@@ -105,7 +105,7 @@ def check_and_run_daily_waiver():
                     try:
                         subprocess.run(
                             ["python3", "src/scripts/daily_sitstart.py", "--date", "2025-09-28", "--skip-tune"],
-                            cwd="/home/dominick/workspace/fantasy-baseball-ai",
+                            cwd="/home/dominick/workspace/smartballz",
                             check=True,
                             capture_output=True
                         )
@@ -118,7 +118,7 @@ def check_and_run_daily_waiver():
 check_and_run_daily_waiver()
 
 # Title
-st.title("⚾ Fantasy Baseball AI - Sit/Start Analysis")
+st.title("⚾ SmartBallz - Sit/Start Analysis")
 st.markdown("### Last Week of 2025 Season (Sept 28, 2025)")
 
 # Get file metadata for sidebar (moved up to display at top)
@@ -170,8 +170,8 @@ if roster_data is not None and 'fantasy_team' in roster_data.columns:
             
             def run_analysis():
                 return subprocess.Popen(
-                    ["./fb-ai", "--date", "2025-09-28", "--quick"],
-                    cwd="/home/dominick/workspace/fantasy-baseball-ai",
+                    ["./smartballz", "--date", "2025-09-28", "--quick"],
+                    cwd="/home/dominick/workspace/smartballz",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
@@ -233,7 +233,7 @@ if roster_data is not None and 'fantasy_team' in roster_data.columns:
             def run_waiver():
                 return subprocess.Popen(
                     ["python3", "src/scripts/daily_sitstart.py", "--date", "2025-09-28", "--skip-tune"],
-                    cwd="/home/dominick/workspace/fantasy-baseball-ai",
+                    cwd="/home/dominick/workspace/smartballz",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
@@ -287,7 +287,7 @@ if roster_data is not None and 'fantasy_team' in roster_data.columns:
         def run_refresh():
             return subprocess.Popen(
                 ["python3", "src/scripts/scrape/yahoo_scrape.py"],
-                cwd="/home/dominick/workspace/fantasy-baseball-ai",
+                cwd="/home/dominick/workspace/smartballz",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -350,7 +350,7 @@ if roster_data is not None and 'fantasy_team' in roster_data.columns:
         def run_calibration():
             return subprocess.Popen(
                 ["python3", "src/scripts/daily_sitstart.py", "--date", "2025-09-28", "--tune-only"],
-                cwd="/home/dominick/workspace/fantasy-baseball-ai",
+                cwd="/home/dominick/workspace/smartballz",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -2151,7 +2151,7 @@ Team performance and morale from recent win/loss streaks. Teams on winning strea
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #888;'>
-    <p>Fantasy Baseball AI | Powered by 20+ Factor Analysis | Auto-Fetched Yahoo Rosters</p>
+    <p>SmartBallz | Powered by 20+ Factor Analysis | Auto-Fetched Yahoo Rosters</p>
     <p>All scores range -2 to +2 | Higher = Better matchup | Weights optimized per player</p>
 </div>
 """, unsafe_allow_html=True)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fantasy Baseball AI - Streamlit Sit/Start Report (Modular Version)
+SmartBallz - Streamlit Sit/Start Report (Modular Version)
 Interactive dashboard for sit/start recommendations
 
 This is the modular version - all major sections extracted into components.
@@ -125,7 +125,7 @@ def check_and_run_daily_waiver():
                     try:
                         subprocess.run(
                             ["python3", "src/scripts/daily_sitstart.py", "--date", "2025-09-28", "--skip-tune"],
-                            cwd="/home/dominick/workspace/fantasy-baseball-ai",
+                            cwd="/home/dominick/workspace/smartballz",
                             check=True,
                             capture_output=True
                         )
@@ -136,7 +136,7 @@ def check_and_run_daily_waiver():
 
 
 # Title
-st.title("⚾ Fantasy Baseball AI - Sit/Start Analysis")
+st.title("⚾ SmartBallz - Sit/Start Analysis")
 st.markdown("### Last Week of 2025 Season (Sept 28, 2025)")
 
 # Get file metadata for sidebar (moved up to display at top)
@@ -553,7 +553,7 @@ with st.expander("ℹ️ View Complete Factor Descriptions", expanded=False):
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #666; padding: 20px;">
-    <p><strong>Fantasy Baseball AI</strong> | Powered by 20+ Factor Analysis | Auto-Fetched Yahoo Rosters</p>
+    <p><strong>SmartBallz</strong> | Powered by 20+ Factor Analysis | Auto-Fetched Yahoo Rosters</p>
     <p style="font-size: 0.9em;">All scores range -2 to +2 | Higher = Better matchup | Weights optimized per player</p>
 </div>
 """, unsafe_allow_html=True)

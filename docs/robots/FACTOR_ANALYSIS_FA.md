@@ -1,6 +1,6 @@
 # Factor Analysis (FA) Modules
 
-This documentation covers all analysis factors used by the Fantasy Baseball AI system to generate start/sit recommendations.
+This documentation covers all analysis factors used by the SmartBallz system to generate start/sit recommendations.
 
 ## Overview
 
@@ -927,7 +927,7 @@ Impact: More hits expected vs poor defensive team
 
 ## Weight Tuning & Backtesting
 
-The Fantasy Baseball AI system includes an advanced **weight tuning system** that optimizes factor analysis weights based on historical performance data. This allows you to customize recommendations for each player on your roster.
+The SmartBallz system includes an advanced **weight tuning system** that optimizes factor analysis weights based on historical performance data. This allows you to customize recommendations for each player on your roster.
 
 ### Overview
 
@@ -1252,7 +1252,7 @@ python src/scripts/scrape/gamelog_scrape.py
 
 # This creates: data/mlb_game_logs_2024.csv
 
-# Then run analysis (or use fb-ai)
+# Then run analysis (or use smartballz)
 python src/scripts/fa/recent_form_fa.py
 ```
 
@@ -1277,7 +1277,7 @@ Parameters:
 - Add to cron for automation:
 ```bash
 # Every Monday at 2 AM
-0 2 * * 1 cd /path/to/fantasy-baseball-ai && python src/scripts/scrape/gamelog_scrape.py
+0 2 * * 1 cd /path/to/smartballz && python src/scripts/scrape/gamelog_scrape.py
 ```
 
 **Usage:**

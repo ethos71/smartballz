@@ -365,5 +365,5 @@ train_data = train_data.sample(frac=0.7)
 
 ---
 
-*Created for Fantasy Baseball AI v1.0.0+*
+*Created for SmartBallz v1.0.0+*
 *For maximum accuracy predictions*

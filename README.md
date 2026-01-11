@@ -1,4 +1,4 @@
-# ⚾ Fantasy Baseball AI - Quick Start Guide
+# ⚾ SmartBallz - Quick Start Guide
 
 An automated machine learning system for fantasy baseball optimization that combines MLB statistics, Vegas betting odds, real-time weather data, and Yahoo Fantasy Sports integration to provide data-driven sit/start decisions.
 
@@ -26,7 +26,7 @@ Takes ~5-10 minutes. Do this once to download all data.
 
 **Check when your games start:**
 ```bash
-fb-ai --when
+smartballz --when
 ```
 
 This shows you exactly when to run the analysis (30 mins before first game).
@@ -37,7 +37,7 @@ This shows you exactly when to run the analysis (30 mins before first game).
 
 **Get sit/start recommendations:**
 ```bash
-fb-ai
+smartballz
 ```
 
 That's it! The system will:
@@ -49,7 +49,7 @@ That's it! The system will:
 
 **Too close to game time? Use quick mode:**
 ```bash
-fb-ai --quick
+smartballz --quick
 ```
 
 ---
@@ -84,9 +84,9 @@ Apply recommendations to your Yahoo Fantasy lineup!
 ## 📊 Other Useful Commands
 
 ```bash
-fb-ai --last              # View yesterday's recommendations
-fb-ai --date 2025-09-29   # Run for specific date (postseason)
-fb-ai --help              # See all options
+smartballz --last              # View yesterday's recommendations
+smartballz --date 2025-09-29   # Run for specific date (postseason)
+smartballz --help              # See all options
 ```
 
 ---
@@ -95,8 +95,8 @@ fb-ai --help              # See all options
 
 | Time | Command | What It Does |
 |------|---------|-------------|
-| **Morning (8-9 AM)** | `fb-ai --when` | Check game times |
-| **30 mins before games** | `fb-ai` | Get recommendations (auto-fetches roster!) |
+| **Morning (8-9 AM)** | `smartballz --when` | Check game times |
+| **30 mins before games** | `smartballz` | Get recommendations (auto-fetches roster!) |
 | **Set lineup** | (Manual) | Apply recommendations in Yahoo |
 
 ---
@@ -165,7 +165,7 @@ No need to manually update rosters - it's always current! 🎉
 
 - **Run early?** System uses full analysis with weight tuning (more accurate)
 - **Run late?** System skips weight tuning for speed (still very good)
-- **Force quick mode?** Use `fb-ai --quick` (1-2 minutes)
+- **Force quick mode?** Use `smartballz --quick` (1-2 minutes)
 - **Weekly task:** Run `python src/scripts/daily_sitstart.py --tune-only` to refresh weight calibration
 - **Waiver wire pickups:** System now suggests better matchup alternatives from free agents!
 
@@ -259,7 +259,7 @@ See [docs/WEIGHT_TUNING_GUIDE.md](docs/WEIGHT_TUNING_GUIDE.md) for details.
 ## 🏗️ Project Structure
 
 ```
-fantasy-baseball-ai/
+smartballz/
 ├── data/                              # Generated data files
 │   ├── mlb_all_teams.csv              # All 30 MLB teams
 │   ├── mlb_YYYY_schedule.csv          # Schedules (4 years)
@@ -305,7 +305,7 @@ fantasy-baseball-ai/
 │   ├── FACTOR_ANALYSIS_FA.md          # Factor details
 │   └── WEIGHT_TUNING_GUIDE.md         # Weight tuning guide
 ├── streamlit_report.py                # Interactive dashboard
-├── .github/prompts/fb-ai              # Main fb-ai command
+├── .github/prompts/smartballz              # Main smartballz command
 └── oauth2.json                        # Yahoo credentials
 ```
 
@@ -346,7 +346,7 @@ crontab -e
 
 Add this line:
 ```
-0 7 * * * cd /home/dominick/workspace/fantasy-baseball-ai && fb-ai
+0 7 * * * cd /home/dominick/workspace/smartballz && smartballz
 ```
 
 Recommendations will be ready when you wake up!
@@ -383,9 +383,9 @@ Shows:
 
 **Super Simple (Just type this!):**
 ```bash
-fb-ai                                  # Run sit/start analysis (auto mode)
-fb-ai --when                           # Check game times
-fb-ai --last                           # Show last recommendations
+smartballz                                  # Run sit/start analysis (auto mode)
+smartballz --when                           # Check game times
+smartballz --last                           # Show last recommendations
 ```
 
 **Full Commands:**
@@ -394,18 +394,18 @@ fb-ai --last                           # Show last recommendations
 python src/fb_ai.py --refresh
 
 # Daily sit/start (auto-fetches roster!)
-fb-ai                                  # Simple way (recommended)
+smartballz                                  # Simple way (recommended)
 python src/scripts/daily_sitstart.py  # Full way
 
 # Quick mode (skip weight tuning)
-fb-ai --quick
+smartballz --quick
 python src/scripts/daily_sitstart.py --skip-tune
 
 # Specific date
-fb-ai --date 2025-09-29
+smartballz --date 2025-09-29
 
 # Check game times (when to run)
-fb-ai --when
+smartballz --when
 python src/scripts/schedule_helper.py
 
 # Check data status
@@ -426,13 +426,13 @@ streamlit run streamlit_report.py
 ## ❓ Need Help?
 
 ```bash
-fb-ai --help                            # Quick help
+smartballz --help                            # Quick help
 cat docs/DAILY_WORKFLOW.md              # Detailed workflow guide
 ```
 
 ---
 
-**That's it! Just type `fb-ai` 30 minutes before game time and you're done!** 🎉
+**That's it! Just type `smartballz` 30 minutes before game time and you're done!** 🎉
 
 The system automatically fetches your latest roster from Yahoo every time it runs, so your analysis is always based on your current team!
 

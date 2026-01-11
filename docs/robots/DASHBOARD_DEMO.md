@@ -1,8 +1,8 @@
-# Fantasy Baseball AI - Dashboard Demo
+# SmartBallz - Dashboard Demo
 
 ## 🎯 Dashboard Overview
 
-The Fantasy Baseball AI Streamlit dashboard provides comprehensive sit/start recommendations powered by 20 factor analyses across 1,106+ MLB players.
+The SmartBallz Streamlit dashboard provides comprehensive sit/start recommendations powered by 20 factor analyses across 1,106+ MLB players.
 
 **Access:** http://localhost:8501
 

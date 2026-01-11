@@ -58,7 +58,7 @@ def create_roster_file():
     for i, player in enumerate(players, 1):
         print(f"  {i:2d}. {player}")
     print()
-    print("Now run: ./fb-ai --date 2025-09-28")
+    print("Now run: ./smartballz --date 2025-09-28")
     print()
 
 

@@ -1,10 +1,10 @@
 # FB-AI Robot Memory
 
-This folder contains timestamped memory files created by the `fb-ai` command.
+This folder contains timestamped memory files created by the `smartballz` command.
 
 ## Purpose
 
-Every time `fb-ai` runs, it automatically creates a new markdown file here with:
+Every time `smartballz` runs, it automatically creates a new markdown file here with:
 - Timestamp of execution
 - Command that was run
 - Context and state of the execution
@@ -13,21 +13,21 @@ Every time `fb-ai` runs, it automatically creates a new markdown file here with:
 
 ## File Format
 
-Files are named: `fb-ai_memory_YYYYMMDD_HHMMSS.md`
+Files are named: `smartballz_memory_YYYYMMDD_HHMMSS.md`
 
-Example: `fb-ai_memory_20260110_175500.md`
+Example: `smartballz_memory_20260110_175500.md`
 
 ## Usage
 
 These files serve as:
-1. **Execution History** - Track when and how fb-ai was run
+1. **Execution History** - Track when and how smartballz was run
 2. **Context Preservation** - Maintain state across sessions
 3. **AI Memory** - Help GitHub Copilot CLI remember project milestones
 4. **Documentation** - Record important changes and decisions
 
 ## Integration
 
-The fb-ai command at `.github/agents/fb-ai` automatically:
+The smartballz command at `.github/agents/smartballz` automatically:
 - Creates this directory if it doesn't exist
 - Generates a new memory file on each run
 - Includes instructions for milestone-based commits

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fantasy Baseball AI - Analysis Report Dashboard
+SmartBallz - Analysis Report Dashboard
 
 Streamlit dashboard to visualize sit/start recommendations and analysis results.
 
@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Page config
 st.set_page_config(
-    page_title="Fantasy Baseball AI - Analysis Report",
+    page_title="SmartBallz - Analysis Report",
     page_icon="⚾",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -391,7 +391,7 @@ def main():
     """Main Streamlit app"""
     
     # Header
-    st.markdown("<h1 class='main-header'>⚾ Fantasy Baseball AI</h1>", 
+    st.markdown("<h1 class='main-header'>⚾ SmartBallz</h1>", 
                 unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center;'>Sit/Start Analysis Report</h3>", 
                 unsafe_allow_html=True)
@@ -409,7 +409,7 @@ def main():
         
         1. Run the sit/start analysis:
            ```bash
-           ./fb-ai
+           ./smartballz
            ```
         
         2. This will create analysis files in the `data/` directory
@@ -462,7 +462,7 @@ def main():
     st.sidebar.markdown("""
     ### About
     
-    This dashboard visualizes the Fantasy Baseball AI sit/start analysis results.
+    This dashboard visualizes the SmartBallz sit/start analysis results.
     
     **Analysis includes:**
     - 20 factor analyses

@@ -1,4 +1,4 @@
-# Fantasy Baseball AI - Analysis Reports
+# SmartBallz - Analysis Reports
 
 This directory contains Streamlit dashboards and analysis reports.
 
@@ -28,7 +28,7 @@ pip install streamlit plotly
 
 1. First, run the sit/start analysis to generate data:
    ```bash
-   ./fb-ai
+   ./smartballz
    ```
 
 2. Launch the Streamlit dashboard:
@@ -64,7 +64,7 @@ docs/
 pip install streamlit plotly
 
 # Run analysis
-./fb-ai
+./smartballz
 
 # View results
 streamlit run docs/analysis_report.py
@@ -115,7 +115,7 @@ streamlit run docs/analysis_report.py
 
 ## 🔄 Refreshing Data
 
-After running a new analysis with `./fb-ai`, simply refresh the Streamlit app in your browser to see updated results.
+After running a new analysis with `./smartballz`, simply refresh the Streamlit app in your browser to see updated results.
 
 ## 💡 Tips
 
@@ -128,7 +128,7 @@ After running a new analysis with `./fb-ai`, simply refresh the Streamlit app in
 ## 🐛 Troubleshooting
 
 **No data found:**
-- Ensure you've run `./fb-ai` first
+- Ensure you've run `./smartballz` first
 - Check that `data/sitstart_recommendations_*.csv` exists
 
 **Import errors:**
