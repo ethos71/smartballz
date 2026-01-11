@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="smartballz_logo.png" alt="SmartBallz Logo" width="200"/>
+</div>
+
 # ⚾ SmartBallz - Quick Start Guide
 
 An automated machine learning system for fantasy baseball optimization that combines MLB statistics, Vegas betting odds, real-time weather data, and Yahoo Fantasy Sports integration to provide data-driven sit/start decisions.
